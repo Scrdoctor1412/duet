@@ -1,11 +1,11 @@
-import 'package:flutter/widgets.dart';
+﻿import 'package:flutter/widgets.dart';
 
-/// Widget tr�?giúp bọc và lắng nghe danh sách các [Listenable] thông thường (không qua ViewModel).
+/// Helper widget that subscribes to a list of arbitrary [Listenable] instances and rebuilds its widget subtree.
 class DuetListenableBuilder extends StatefulWidget {
-  /// Danh sách các [Listenable] cần lắng nghe.
+  /// List of [Listenable] objects to listen to.
   final List<Listenable> listenTo;
 
-  /// Hàm builder tạo cây Widget.
+  /// Builder callback producing the widget tree.
   final WidgetBuilder builder;
 
   const DuetListenableBuilder({
@@ -62,5 +62,5 @@ class _DuetListenableBuilderState
   }
 }
 
-/// Alias cho ReactiveListenableBuilder
+/// Backward compatibility alias for [DuetListenableBuilder].
 typedef ReactiveListenableBuilder = DuetListenableBuilder;

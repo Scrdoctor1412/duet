@@ -1,11 +1,11 @@
-import 'package:flutter/widgets.dart';
+﻿import 'package:flutter/widgets.dart';
 import 'package:duet/src/core/duet_core.dart';
 
-/// Quản lý nội b�?việc khởi tạo và lưu tr�?các instance Singleton của Duet theo Type và Key.
+/// Internal registry managing initialization and storage of Duet instances by Type and Key.
 class _DuetRegistryImpl {
   static final Map<Object, Duet> _instances = {};
 
-  /// Lấy hoặc t�?động khởi tạo tr�?(Lazy init) instance của Duet kiểu [T].
+  /// Retrieves or lazily initializes a Duet instance of type [T].
   static T get<T extends Duet>(T Function() creator, {Object? key}) {
     if (_instances.containsKey(T) &&
         _instances[T]!.isGlobal &&
@@ -25,16 +25,16 @@ class _DuetRegistryImpl {
 
       assert(
         key != null,
-        'CẢNH BÁO: Bạn đang lấy Duet [${T.toString()}] qua getDuet mà KHÔNG truyền `key`, '
-        'trong khi `isGlobal` = false. Điều này có th�?dẫn đến việc nhiều màn hình dùng chung 1 instance! '
-        'Khuyên dùng `getDuet(() => ${T.toString()}(), key: this)` hoặc `context.duet(...)` hoặc ghi đè `bool get isGlobal => true`.',
+        'WARNING: Retrieving Duet [${T.toString()}] via getDuet without providing a `key` '
+        'while `isGlobal` is false. This may lead to multiple screens accidentally sharing the same instance! '
+        'Consider using `getDuet(() => ${T.toString()}(), key: this)` or `context.duet(...)` or overriding `bool get isGlobal => true`.',
       );
       _instances[registryKey] = instance;
     }
     return _instances[registryKey] as T;
   }
 
-  /// Giải phóng và xóa instance của Duet kiểu [T] khỏi Registry.
+  /// Resets and removes the Duet instance of type [T] from registry.
   static void reset<T extends Duet>({Object? key}) {
     final registryKey = key != null ? Object.hash(T, key) : T;
     if (_instances.containsKey(registryKey)) {
@@ -43,12 +43,12 @@ class _DuetRegistryImpl {
     }
   }
 
-  /// Xóa một instance Duet c�?th�?khỏi Registry.
+  /// Removes a specific Duet instance from registry.
   static void removeInstance(Duet vm) {
     _instances.removeWhere((key, value) => identical(value, vm));
   }
 
-  /// Giải phóng b�?nh�?và xóa toàn b�?các Duet đang lưu trong Registry.
+  /// Disposes and clears all registered Duet instances.
   static void resetAll() {
     for (final vm in _instances.values) {
       vm.dispose();
@@ -57,47 +57,47 @@ class _DuetRegistryImpl {
   }
 }
 
-/// Hàm tr�?giúp toàn cục chính thức lấy hoặc t�?động khởi tạo tr�?(Lazy creation) Duet instance [T].
+/// Global helper function to retrieve or lazily create a Duet instance of type [T].
 T getDuet<T extends Duet>(T Function() creator, {Object? key}) {
   return _DuetRegistryImpl.get<T>(creator, key: key);
 }
 
-/// Alias tương thích ngược cho getDuet
+/// Backward compatibility alias for [getDuet].
 T getVM<T extends Duet>(T Function() creator, {Object? key}) {
   return getDuet<T>(creator, key: key);
 }
 
-/// Extension giúp lấy Duet thông qua [BuildContext] với tính năng t�?động tạo key t�?Route.
+/// Extension providing [BuildContext] access to lazily create and locate Duet instances with automatic route keys.
 extension DuetContextX on BuildContext {
-  /// Lấy hoặc t�?động khởi tạo Duet [T].
+  /// Retrieves or lazily creates a Duet instance of type [T].
   T duet<T extends Duet>(T Function() creator, {Object? key}) {
     final autoKey = key ?? ModalRoute.of(this)?.settings.name ?? T.toString();
     return _DuetRegistryImpl.get<T>(creator, key: autoKey);
   }
 
-  /// Alias tương thích ngược cho duet()
+  /// Backward compatibility alias for [duet].
   T getVM<T extends Duet>(T Function() creator, {Object? key}) {
     return duet<T>(creator, key: key);
   }
 }
 
-/// Hàm nội b�?hủy đăng ký Duet khỏi Registry khi b�?autoDispose.
+/// Internal helper unregistering a disposed Duet instance from the registry.
 void unregisterVM(Duet vm) {
   _DuetRegistryImpl.removeInstance(vm);
 }
 
-/// Class tiện ích phục v�?việc quản lý Registry và h�?tr�?trong Unit Test.
+/// Public utility class for managing the registry during runtime and unit testing.
 abstract class DuetRegistry {
-  /// Giải phóng b�?nh�?và xóa toàn b�?các Duet trong ứng dụng.
+  /// Disposes and clears all active Duet instances.
   static void resetAll() => _DuetRegistryImpl.resetAll();
 
-  /// Alias tiện lợi cho resetAll
+  /// Convenient alias for [resetAll].
   static void clearAll() => resetAll();
 
-  /// Giải phóng và khởi tạo lại duy nhất Duet của kiểu [T] với [key] tùy chọn.
+  /// Disposes and resets a specific Duet instance of type [T] with optional [key].
   static void reset<T extends Duet>({Object? key}) =>
       _DuetRegistryImpl.reset<T>(key: key);
 }
 
-/// Alias tương thích ngược cho DuetRegistry
+/// Backward compatibility alias for [DuetRegistry].
 typedef ViewModelRegistry = DuetRegistry;

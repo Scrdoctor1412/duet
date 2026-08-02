@@ -1,29 +1,29 @@
-import 'package:flutter/widgets.dart';
+﻿import 'package:flutter/widgets.dart';
 import 'package:duet/src/core/duet_core.dart';
 import 'package:duet/src/core/duet_provider.dart';
 import 'package:duet/src/widgets/duet_scope.dart';
 
-/// Mixin gắn vào [State] của [StatefulWidget], t�?động khởi tạo Duet [VM].
+/// Mixin attached to a [StatefulWidget]'s [State] to manage lifecycle and automatically bind a Duet ViewModel [VM].
 mixin DuetStateMixin<W extends StatefulWidget, VM extends Duet>
     on State<W> {
   late final VM _duet;
 
-  /// Tr�?v�?instance của Duet [VM] liên kết với Widget này.
+  /// Returns the Duet ViewModel instance bound to this widget.
   VM get duet => _duet;
 
-  /// Aliases tương thích cho [duet].
+  /// Compatibility aliases for [duet].
   VM get vm => _duet;
   VM get viewModel => _duet;
 
-  /// Hàm cung cấp/liên kết Duet instance cho Màn hình (Bắt buộc triển khai bindDuet hoặc bindViewModel).
+  /// Binds and provides the Duet instance for this screen component (must override [bindDuet] or [bindViewModel]).
   VM bindDuet() => bindViewModel();
 
-  /// Alias tương thích cho [bindDuet].
+  /// Compatibility alias for [bindDuet].
   VM bindViewModel() {
-    throw UnimplementedError('Bạn phải ghi đè bindDuet() hoặc bindViewModel()');
+    throw UnimplementedError('You must override bindDuet() or bindViewModel() in your screen widget.');
   }
 
-  /// Bọc cây Widget con bằng [DuetScope].
+  /// Wraps the child widget subtree in a [DuetScope].
   Widget buildScope(Widget child) {
     return DuetScope<VM>(
       viewModel: _duet,
@@ -54,24 +54,24 @@ mixin DuetStateMixin<W extends StatefulWidget, VM extends Duet>
   }
 }
 
-/// Alias cho ReactiveStateMixin
+/// Backward compatibility alias for [DuetStateMixin].
 typedef ReactiveStateMixin<W extends StatefulWidget, VM extends Duet> = DuetStateMixin<W, VM>;
 
 /// {@template duet_view}
-/// Class cơ s�?cho Widget đại diện cho Màn hình (Screen/View) t�?động liên kết với [Duet].
+/// Base class for Screen/View components that automatically binds and scopes a [Duet] ViewModel.
 /// {@endtemplate}
 abstract class DuetView<VM extends Duet> extends StatefulWidget {
   const DuetView({super.key});
 
-  /// Hàm cung cấp/liên kết Duet instance cho Màn hình.
+  /// Binds and provides the Duet instance for this screen component.
   VM bindDuet() => bindViewModel();
 
-  /// Alias tương thích cho [bindDuet].
+  /// Compatibility alias for [bindDuet].
   VM bindViewModel() {
-    throw UnimplementedError('Bạn phải ghi đè bindDuet() hoặc bindViewModel()');
+    throw UnimplementedError('You must override bindDuet() or bindViewModel() in your screen widget.');
   }
 
-  /// Hàm dựng giao diện nhận trực tiếp [context] và [duet].
+  /// UI build method receiving both [BuildContext] and the bound [duet] instance.
   Widget build(BuildContext context, VM duet);
 
   @override
@@ -92,5 +92,5 @@ class _DuetViewState<VM extends Duet> extends State<DuetView<VM>>
   }
 }
 
-/// Alias cho ReactiveView
+/// Backward compatibility alias for [DuetView].
 typedef ReactiveView<VM extends Duet> = DuetView<VM>;

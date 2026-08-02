@@ -1,49 +1,34 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 
-/// {@template ui_state}
-/// Sealed Class chuẩn hóa toàn cục trạng thái hành vi UI (Behavior State).
+/// Base abstract class for defining UI behavior states.
 ///
-/// Định nghĩa 4 trạng thái UI cốt lõi:
-/// - [UiIdle]: Trạng thái ch�?/ Ban đầu.
-/// - [UiLoading]: Trạng thái đang tải d�?liệu.
-/// - [UiSuccess]: Trạng thái tải d�?liệu thành công.
-/// - [UiError]: Trạng thái gặp lỗi (kèm [message]).
-///
-/// H�?tr�?Pattern Matching (Dart 3) bắt buộc x�?lý đ�?các nhánh �?UI.
-/// {@endtemplate}
+/// Designed to be subclassed or implemented using Dart 3 sealed class hierarchies
+/// for exhaustive pattern matching (e.g. Loading, Success, Error).
 @immutable
-sealed class UiState {
+abstract class UiState {
   const UiState();
-
-  factory UiState.idle() = UiIdle;
-  factory UiState.loading() = UiLoading;
-  factory UiState.success() = UiSuccess;
-  factory UiState.error(String message) = UiError;
 }
 
-final class UiIdle extends UiState {
+/// Default idle UI state.
+class UiIdle extends UiState {
   const UiIdle();
 }
 
-final class UiLoading extends UiState {
+/// Default loading UI state.
+class UiLoading extends UiState {
   const UiLoading();
 }
 
-final class UiSuccess extends UiState {
+/// Default success UI state.
+class UiSuccess extends UiState {
   const UiSuccess();
 }
 
-final class UiError extends UiState {
+/// Default error UI state with a message payload.
+class UiError extends UiState {
   final String message;
   const UiError(this.message);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is UiError &&
-          runtimeType == other.runtimeType &&
-          message == other.message;
-
-  @override
-  int get hashCode => message.hashCode;
 }
+
+/// Backward compatibility alias for [UiState].
+typedef ReactiveStateData = UiState;

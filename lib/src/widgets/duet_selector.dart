@@ -1,25 +1,27 @@
-import 'package:flutter/widgets.dart';
+﻿import 'package:flutter/widgets.dart';
 import 'package:duet/src/core/duet_core.dart';
 import 'package:duet/src/core/duet_provider.dart';
 import 'package:duet/src/widgets/duet_scope.dart';
 
+/// A reactive widget that extracts a specific property [T] from a [Duet] instance
+/// and rebuilds ONLY when the extracted property changes.
 class DuetSelector<VM extends Duet, T> extends StatefulWidget {
-  /// ViewModel liên kết tùy chọn (Nếu null s�?t�?tìm kiếm trong BuildContext).
+  /// Explicitly provided ViewModel instance (if omitted, looked up via [BuildContext]).
   final VM? viewModel;
 
-  /// Hàm trích xuất giá tr�?[T] t�?ViewModel [VM].
+  /// Selector function extracting property [T] from ViewModel [VM].
   final T Function(VM vm) selector;
 
-  /// Hàm builder tr�?v�?cây Widget giao diện ph�?thuộc vào giá tr�?[T] đã chọn.
+  /// Builder callback producing the widget tree dependent on extracted value [T].
   final Widget Function(BuildContext context, T value) builder;
 
-  /// Hàm so sánh tùy chỉnh đ�?quyết định Widget có nên rebuild hay không.
+  /// Optional custom comparator determining whether the widget should rebuild.
   final bool Function(T previous, T current)? shouldRebuild;
 
-  /// C�?xác định xem đang lắng nghe `dataNotifier` (false) hay `behaviorNotifier` (true).
+  /// Internal flag indicating whether selector listens to `dataNotifier` (false) or `behaviorNotifier` (true).
   final bool _isUiSelector;
 
-  /// Lắng nghe s�?thay đổi một phần của d�?liệu nghiệp v�?(`dataNotifier`).
+  /// Listens to updates on a specific field of domain business data (`dataNotifier`).
   const DuetSelector({
     super.key,
     this.viewModel,
@@ -28,7 +30,7 @@ class DuetSelector<VM extends Duet, T> extends StatefulWidget {
     this.shouldRebuild,
   })  : _isUiSelector = false;
 
-  /// Lắng nghe s�?thay đổi một phần của trạng thái UI (`behaviorNotifier`).
+  /// Listens to updates on a specific field of UI behavior state (`behaviorNotifier`).
   const DuetSelector.ui({
     super.key,
     this.viewModel,
@@ -112,5 +114,5 @@ class _DuetSelectorState<VM extends Duet, T>
   }
 }
 
-/// Alias cho ReactiveSelector
+/// Backward compatibility alias for [DuetSelector].
 typedef ReactiveSelector<VM extends Duet, T> = DuetSelector<VM, T>;

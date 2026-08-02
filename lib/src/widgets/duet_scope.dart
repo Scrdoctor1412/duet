@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+﻿import 'package:flutter/widgets.dart';
 import 'package:duet/src/core/duet_core.dart';
 
 abstract class _AnyDuetScope extends InheritedWidget {
@@ -8,10 +8,10 @@ abstract class _AnyDuetScope extends InheritedWidget {
 }
 
 /// {@template duet_scope}
-/// Widget cho phép phân vùng một Duet c�?th�?xuống cây Widget con bằng BuildContext.
+/// An [InheritedWidget] scoping a specific [Duet] instance down the widget subtree via [BuildContext].
 /// {@endtemplate}
 class DuetScope<VM extends Duet> extends _AnyDuetScope {
-  /// Duet được gắn vào nhánh cây Widget này.
+  /// The Duet instance scoped to this subtree.
   @override
   final VM viewModel;
 
@@ -22,7 +22,7 @@ class DuetScope<VM extends Duet> extends _AnyDuetScope {
     required super.child,
   });
 
-  /// Lấy Duet gần nhất thuộc kiểu [VM] trên cây Widget trong O(1).
+  /// Retrieves the nearest [Duet] instance of type [VM] up the widget tree in $O(1)$ time.
   static VM of<VM extends Duet>(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<DuetScope<VM>>();
     if (scope != null) return scope.viewModel;
@@ -54,14 +54,14 @@ class DuetScope<VM extends Duet> extends _AnyDuetScope {
 
     assert(
       false,
-      '�?CẢNH BÁO LỖI DUET:\n'
-      'Không tìm thấy DuetScope<$VM> nào trong BuildContext hiện tại!\n'
-      '👉 Hãy đảm bảo bạn đã bọc `DuetScope`, dùng `DuetView`/`DuetStateMixin` �?Màn hình cha, hoặc truyền `viewModel:` trực tiếp.',
+      'DUET SCOPE ERROR:\n'
+      'Could not find DuetScope<$VM> in the current BuildContext!\n'
+      'Ensure you wrapped the widget subtree with `DuetScope`, extended `DuetView`/`DuetStateMixin` on the parent screen, or passed `viewModel:` explicitly.',
     );
     throw StateError('DuetScope<$VM> not found in BuildContext.');
   }
 
-  /// Tìm kiếm Duet phù hợp với kiểu d�?liệu [D] và [B] t�?BuildContext hoặc dùng [explicitVM] trong O(1).
+  /// Finds a matching Duet instance for generic types [D] and [B] from [BuildContext] or uses [explicitVM].
   static Duet<D, B> find<D, B>(
     BuildContext context, {
     Duet<D, B>? explicitVM,
@@ -95,12 +95,12 @@ class DuetScope<VM extends Duet> extends _AnyDuetScope {
 
     assert(
       false,
-      '�?CẢNH BÁO LỖI DUET:\n'
-      'Không tìm thấy Duet phù hợp cho kiểu <$D, $B> trong BuildContext hiện tại!\n'
-      '👉 Hãy thực hiện 1 trong các cách sau:\n'
-      '1. Truyền `viewModel:` trực tiếp vào Widget.\n'
-      '2. K�?thừa `DuetView` hoặc dùng `DuetStateMixin` �?Màn hình cha.\n'
-      '3. Bọc cây Widget con trong `DuetScope`.',
+      'DUET SCOPE ERROR:\n'
+      'Could not find a matching Duet for types <$D, $B> in the current BuildContext!\n'
+      'Ensure you do one of the following:\n'
+      '1. Pass `viewModel:` directly to the widget.\n'
+      '2. Extend `DuetView` or mix in `DuetStateMixin` on the parent screen.\n'
+      '3. Wrap the subtree in a `DuetScope`.',
     );
     throw StateError('Duet for <$D, $B> not found in BuildContext.');
   }
@@ -110,14 +110,14 @@ class DuetScope<VM extends Duet> extends _AnyDuetScope {
       viewModel != oldWidget.viewModel;
 }
 
-/// Extension giúp truy cập Duet bằng BuildContext: `context.duetOf<MyDuet>()` hoặc `context.vm<MyViewModel>()`
+/// Extension providing convenient [BuildContext] access: `context.duetOf<MyDuet>()` or `context.vm<MyViewModel>()`.
 extension DuetScopeContextX on BuildContext {
-  /// Truy cập Duet được phân vùng gần nhất trên cây Widget.
+  /// Accesses the nearest scoped Duet up the widget tree.
   VM duetOf<VM extends Duet>() => DuetScope.of<VM>(this);
 
-  /// Alias tương thích ngược cho duetOf
+  /// Backward compatibility alias for [duetOf].
   VM vm<VM extends Duet>() => DuetScope.of<VM>(this);
 }
 
-/// Alias tương thích cho VMScope
+/// Backward compatibility alias for [DuetScope].
 typedef VMScope<VM extends Duet> = DuetScope<VM>;

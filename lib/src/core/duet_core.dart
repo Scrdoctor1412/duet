@@ -1,20 +1,23 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 import 'package:duet/src/core/duet_observer.dart';
-import 'package:duet/src/core/ui_state.dart';
 
-/// Top-level custom ValueNotifier h�?tr�?Gom thông báo (Batching) và phát thông báo cưỡng ch�?(forceNotify).
+/// Customized [ValueNotifier] that supports transaction batching.
+///
+/// Prevents multiple intermediate notifications when updating multiple state fields simultaneously.
 class DuetValueNotifier<T> extends ValueNotifier<T> {
-  DuetValueNotifier(super.value);
-
   bool _isBatching = false;
   bool _hasPendingNotify = false;
 
+  DuetValueNotifier(super.value);
+
+  /// Begins a notification batch transaction.
   void beginBatch() {
     _isBatching = true;
   }
 
+  /// Ends the batch transaction and triggers a single notification if any update occurred.
   void endBatch() {
     _isBatching = false;
     if (_hasPendingNotify) {
@@ -32,58 +35,58 @@ class DuetValueNotifier<T> extends ValueNotifier<T> {
     }
   }
 
-  /// Ép buộc phát thông báo tới tất c�?listener k�?c�?khi [value] không thay đổi reference.
+  /// Forces notification emission to all listeners even if [value] reference has not changed.
   void forceNotify() {
     notifyListeners();
   }
 }
 
-/// Alias cho DuetValueNotifier
+/// Backward compatibility alias for [DuetValueNotifier].
 typedef ReactiveValueNotifier<T> = DuetValueNotifier<T>;
 
 /// {@template duet}
-/// Class cơ s�?abstract quản lý State cho tất c�?các ViewModel/Controller trong ứng dụng theo kiến trúc Duet.
+/// Base abstract class managing state for all ViewModels / Controllers under the Duet architecture.
 ///
-/// Quản lý 2 đối tượng [ValueNotifier] riêng biệt:
-/// - [dataNotifier]: Quản lý d�?liệu nghiệp v�?thuộc kiểu [D].
-/// - [behaviorNotifier]: Quản lý trạng thái hành vi giao diện UI thuộc kiểu [B].
+/// Manages two independent [ValueNotifier] instances:
+/// - [dataNotifier]: Holds domain business data of type [D].
+/// - [behaviorNotifier]: Holds transient UI behavior state of type [B].
 ///
-/// H�?tr�?cơ ch�?đếm tham chiếu (Reference Counting) đ�?t�?động giải phóng b�?nh�?RAM ([autoDispose])
-/// khi không còn bất k�?Widget nào theo dõi.
+/// Implements reference counting (`_refCount`) to automatically dispose memory ([autoDispose])
+/// when no active widgets are listening.
 /// {@endtemplate}
 abstract class Duet<D, B> {
-  /// Giá tr�?khởi tạo ban đầu cho d�?liệu nghiệp v�?[D].
+  /// Initial business data value of type [D].
   final D initialData;
 
-  /// Giá tr�?khởi tạo ban đầu cho trạng thái UI [B].
+  /// Initial UI behavior state value of type [B].
   final B initialBehavior;
 
-  /// Quản lý và phát thông báo khi d�?liệu nghiệp v�?[D] thay đổi.
+  /// Manages and notifies updates to domain business data [D].
   late final DuetValueNotifier<D> dataNotifier;
 
-  /// Quản lý và phát thông báo khi trạng thái hành vi UI [B] thay đổi.
+  /// Manages and notifies updates to UI behavior state [B].
   late final DuetValueNotifier<B> behaviorNotifier;
 
-  /// Biến đếm nội b�?s�?lượng Widget đang ch�?động theo dõi ViewModel này.
+  /// Internal reference counter tracking active listener widgets.
   int _refCount = 0;
 
-  /// C�?đánh dấu ViewModel này đã b�?hủy hoàn toàn hay chưa.
+  /// Flag marking whether this instance has been disposed.
   bool _isDisposed = false;
 
-  /// Tr�?v�?`true` nếu ViewModel này đã b�?giải phóng b�?nh�?
+  /// Returns `true` if this instance has been disposed from memory.
   bool get isDisposed => _isDisposed;
 
-  /// S�?lượng Widget hiện tại đang kết nối tới ViewModel (Dành cho kiểm th�?.
+  /// Number of active widgets attached to this instance (visible for testing).
   @visibleForTesting
   int get refCount => _refCount;
 
-  /// Cấu hình tính năng t�?động giải phóng b�?nh�?khi không còn Widget lắng nghe.
+  /// Controls whether this instance should automatically dispose when [refCount] reaches zero.
   bool get autoDispose => true;
 
-  /// Cấu hình đánh dấu ViewModel này có phải là Global Singleton (dùng chung toàn app) hay không.
+  /// Indicates whether this instance is registered as a global singleton.
   bool get isGlobal => false;
 
-  /// Khởi tạo một [Duet] với d�?liệu ban đầu [initialData] và trạng thái UI [initialBehavior].
+  /// Creates a [Duet] instance with initial [initialData] and [initialBehavior].
   Duet({
     required this.initialData,
     required this.initialBehavior,
@@ -92,19 +95,19 @@ abstract class Duet<D, B> {
     behaviorNotifier = DuetValueNotifier<B>(initialBehavior);
   }
 
-  /// Tr�?v�?đồng b�?giá tr�?d�?liệu nghiệp v�?hiện tại.
+  /// Returns current synchronous business data state value.
   D get dataState => dataNotifier.value;
 
-  /// Tr�?v�?đồng b�?giá tr�?trạng thái UI hiện tại.
+  /// Returns current synchronous UI behavior state value.
   B get behaviorState => behaviorNotifier.value;
 
-  /// Getter viết tắt ngắn gọn cho [dataState].
+  /// Concise getter alias for [dataState].
   D get data => dataNotifier.value;
 
-  /// Getter viết tắt ngắn gọn cho [behaviorState].
+  /// Concise getter alias for [behaviorState].
   B get ui => behaviorNotifier.value;
 
-  /// Thực thi một nhóm các cập nhật State ([action]) dưới dạng 1 Giao dịch duy nhất (Transaction/Batch).
+  /// Executes a group of state mutations ([action]) inside a single transaction batch.
   @protected
   void batch(void Function() action) {
     if (_isDisposed) return;
@@ -118,46 +121,46 @@ abstract class Duet<D, B> {
     }
   }
 
-  /// Phát ra d�?liệu nghiệp v�?[newData] mới tới [dataNotifier].
+  /// Emits new domain business data [newData] to [dataNotifier].
   @protected
   void emitData(D newData) {
     if (_isDisposed) return;
     dataNotifier.value = newData;
   }
 
-  /// Cập nhật d�?liệu nghiệp v�?[D] một cách an toàn bằng một hàm biến đổi [transform].
+  /// Safely updates business data [D] using a transformation function [transform].
   @protected
   void updateData(D Function(D current) transform) {
     if (_isDisposed) return;
     final newData = transform(dataState);
     assert(
       !identical(newData, dataState),
-      'CẢNH BÁO: updateData() tr�?v�?cùng 1 Object instance! '
-      'Bạn đã mutate thuộc tính trực tiếp thay vì tạo bản sao mới với copyWith()? '
-      'Nếu muốn ép re-render khi mutate trực tiếp, hãy s�?dụng notifyDataChanged().',
+      'WARNING: updateData() returned the identical object instance! '
+      'Did you mutate properties directly instead of creating a new copy via copyWith()? '
+      'If direct mutation was intended, call notifyDataChanged() instead.',
     );
     emitData(newData);
   }
 
-  /// Ép buộc phát thông báo d�?liệu nghiệp v�?[D] đã thay đổi tới [dataNotifier].
+  /// Forces notification emission for business data [D] to [dataNotifier].
   @protected
   void notifyDataChanged() {
     if (_isDisposed) return;
     dataNotifier.forceNotify();
   }
 
-  /// Phát ra trạng thái UI [newBehavior] mới tới [behaviorNotifier].
+  /// Emits new UI behavior state [newBehavior] to [behaviorNotifier].
   @protected
   void emitBehavior(B newBehavior) {
     if (_isDisposed) return;
     behaviorNotifier.value = newBehavior;
   }
 
-  /// Getter viết tắt ngắn gọn đ�?phát ra trạng thái UI [newUi].
+  /// Concise helper alias to emit UI behavior state [newUi].
   @protected
   void emitUi(B newUi) => emitBehavior(newUi);
 
-  /// Phát ra đồng thời d�?liệu nghiệp v�?[data] và trạng thái UI [ui] trong 1 dòng duy nhất.
+  /// Simultaneously updates business data [data] and UI state [ui] within a single transaction.
   @protected
   void emitState({D? data, B? ui}) {
     if (_isDisposed) return;
@@ -173,17 +176,17 @@ abstract class Duet<D, B> {
     });
   }
 
-  /// Viết tắt ngắn gọn nhất cho [emitState].
+  /// Most concise helper alias for [emitState].
   @protected
   void emit({D? data, B? ui}) => emitState(data: data, ui: ui);
 
-  /// Luồng s�?kiện nội b�?cho các tác v�?Side-Effect 1 lần (Toast, Navigation, Dialog...).
+  /// Internal controller for one-shot side-effect events (Toasts, Navigation, Dialogs).
   final _eventController = StreamController<Object>.broadcast();
 
-  /// Stream công khai đ�?các [DuetListener] đăng ký lắng nghe s�?kiện 1 lần.
+  /// Public broadcast stream for [DuetListener] instances to receive one-shot events.
   Stream<Object> get eventStream => _eventController.stream;
 
-  /// Phát ra một s�?kiện 1 lần [event] (Toast, Navigation, Dialog...).
+  /// Emits a single one-shot side-effect event [event] (Toast, Navigation, Dialog).
   @protected
   void emitEvent(Object event) {
     if (_isDisposed) return;
@@ -195,11 +198,11 @@ abstract class Duet<D, B> {
     _eventController.add(event);
   }
 
-  /// Getter viết tắt ngắn gọn đ�?phát ra s�?kiện [event].
+  /// Concise helper alias for [emitEvent].
   @protected
   void emitEffect(Object event) => emitEvent(event);
 
-  /// Khôi phục State v�?lại [initialData] và [initialBehavior] ban đầu.
+  /// Resets state back to initial [initialData] and [initialBehavior].
   @mustCallSuper
   void invalidate() {
     if (_isDisposed) return;
@@ -207,14 +210,14 @@ abstract class Duet<D, B> {
     emitBehavior(initialBehavior);
   }
 
-  /// Tăng s�?lượng tham chiếu khi có 1 Widget bắt đầu theo dõi ViewModel.
+  /// Increments reference count when a widget attaches to this instance.
   @internal
   void retain() {
     if (_isDisposed) return;
     _refCount++;
   }
 
-  /// Giảm s�?lượng tham chiếu và t�?động gọi [dispose] nếu [_refCount] giảm v�?0 và [autoDispose] = true.
+  /// Decrements reference count and disposes if [_refCount] reaches zero and [autoDispose] is true.
   @internal
   void release(void Function() onDisposeRegistry) {
     _refCount--;
@@ -224,7 +227,7 @@ abstract class Duet<D, B> {
     }
   }
 
-  /// Giải phóng b�?nh�?của các [ValueNotifier] và [StreamController] nội b�?
+  /// Disposes internal [ValueNotifier] and [StreamController] resources.
   @mustCallSuper
   void dispose() {
     if (_isDisposed) return;
@@ -236,17 +239,17 @@ abstract class Duet<D, B> {
 }
 
 // ============================================================================
-// 🎭 TYPEDEF ALIASES (Tùy chọn phong cách gọi cho Developer)
+// TYPEDEF ALIASES
 // ============================================================================
 
-/// Alias kết hợp thương hiệu Duet + ViewModel
+/// Combined brand alias for Duet ViewModel.
 typedef DuetViewModel<D, B> = Duet<D, B>;
 
-/// Alias cho phong cách Controller
+/// Controller style alias for Duet.
 typedef DuetController<D, B> = Duet<D, B>;
 
-/// Alias chuẩn MVVM truyền thống
+/// Classic MVVM alias for Duet.
 typedef ViewModel<D, B> = Duet<D, B>;
 
-/// Alias đảm bảo backward compatibility với code cũ dùng BaseViewModel
+/// Backward compatibility alias for BaseViewModel.
 typedef BaseViewModel<D, B> = Duet<D, B>;

@@ -1,13 +1,13 @@
-import 'package:flutter/widgets.dart';
+﻿import 'package:flutter/widgets.dart';
 import 'package:duet/src/core/duet_core.dart';
 import 'package:duet/src/core/duet_provider.dart';
 
-/// Mixin gắn vào [State] của [StatefulWidget], t�?động quản lý vòng đời và lắng nghe các [Listenable].
+/// Mixin attached to a [StatefulWidget]'s [State] to manage lifecycle and listen to multiple [Listenable] instances.
 mixin DuetConsumer<T extends StatefulWidget> on State<T> {
-  /// Danh sách các đối tượng [Listenable] cần lắng nghe.
+  /// List of [Listenable] objects to subscribe to.
   List<Listenable> get listenTo;
 
-  /// ViewModel liên kết tùy chọn phục v�?theo dõi vòng đời [Duet.autoDispose].
+  /// Optional bound ViewModel instance for reference counting lifecycle management ([Duet.autoDispose]).
   Duet? get viewModel => null;
 
   @override
@@ -32,7 +32,7 @@ mixin DuetConsumer<T extends StatefulWidget> on State<T> {
     super.dispose();
   }
 
-  /// Hàm callback kích hoạt re-build giao diện khi có thông báo thay đổi.
+  /// Internal callback triggering widget rebuild on notification updates.
   void _rebuild() {
     if (mounted) {
       setState(() {});
@@ -40,5 +40,5 @@ mixin DuetConsumer<T extends StatefulWidget> on State<T> {
   }
 }
 
-/// Alias cho ReactiveConsumer
+/// Backward compatibility alias for [DuetConsumer].
 typedef ReactiveConsumer<T extends StatefulWidget> = DuetConsumer<T>;

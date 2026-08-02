@@ -1,40 +1,42 @@
-import 'package:flutter/widgets.dart';
+﻿import 'package:flutter/widgets.dart';
 import 'package:duet/src/core/duet_core.dart';
 import 'package:duet/src/core/duet_provider.dart';
 import 'package:duet/src/widgets/duet_scope.dart';
 
-/// Ch�?đ�?chọn Notifier đ�?lắng nghe trong [DuetBuilder].
+/// Specifies which notifier target [DuetBuilder] should listen to.
 enum DuetTarget {
-  /// Lắng nghe [Duet.dataNotifier].
+  /// Listens to domain business data [Duet.dataNotifier].
   data,
 
-  /// Lắng nghe [Duet.behaviorNotifier].
+  /// Listens to UI behavior state [Duet.behaviorNotifier].
   ui,
 
-  /// Lắng nghe c�?[Duet.dataNotifier] và [Duet.behaviorNotifier].
+  /// Listens to both [Duet.dataNotifier] and [Duet.behaviorNotifier].
   both,
 }
 
-/// Alias cho ReactiveTarget
+/// Backward compatibility alias for [DuetTarget].
 typedef ReactiveTarget = DuetTarget;
 
+/// A reactive widget that automatically listens to updates from a [Duet] instance
+/// and rebuilds its widget subtree.
 class DuetBuilder<D, B> extends StatefulWidget {
-  /// ViewModel liên kết tùy chọn (Nếu null s�?t�?tìm kiếm trong BuildContext).
+  /// Explicitly provided ViewModel instance (if omitted, looked up via [BuildContext]).
   final Duet<D, B>? viewModel;
 
-  /// Hàm builder nhận d�?liệu nghiệp v�?[D].
+  /// Builder callback receiving business data state [D].
   final Widget Function(BuildContext context, D data)? dataBuilder;
 
-  /// Hàm builder nhận trạng thái UI [B].
+  /// Builder callback receiving UI behavior state [B].
   final Widget Function(BuildContext context, B ui)? uiBuilder;
 
-  /// Hàm builder nhận C�?d�?liệu nghiệp v�?[D] lẫn trạng thái UI [B].
+  /// Builder callback receiving both business data [D] and UI behavior state [B].
   final Widget Function(BuildContext context, D data, B ui)? bothBuilder;
 
-  /// Loại Notifier cần lắng nghe.
+  /// The notifier target being listened to.
   final DuetTarget target;
 
-  /// Mặc định lắng nghe d�?liệu nghiệp v�?[Duet.dataNotifier].
+  /// Default constructor listening to domain business data [Duet.dataNotifier].
   const DuetBuilder({
     super.key,
     this.viewModel,
@@ -44,7 +46,7 @@ class DuetBuilder<D, B> extends StatefulWidget {
         bothBuilder = null,
         target = DuetTarget.data;
 
-  /// Lắng nghe trạng thái hành vi UI [Duet.behaviorNotifier].
+  /// Listens to UI behavior state updates [Duet.behaviorNotifier].
   const DuetBuilder.ui({
     super.key,
     this.viewModel,
@@ -54,7 +56,7 @@ class DuetBuilder<D, B> extends StatefulWidget {
         bothBuilder = null,
         target = DuetTarget.ui;
 
-  /// Lắng nghe C�?d�?liệu nghiệp v�?[Duet.dataNotifier] lẫn trạng thái UI [Duet.behaviorNotifier].
+  /// Listens to both business data [Duet.dataNotifier] and UI behavior state [Duet.behaviorNotifier].
   const DuetBuilder.both({
     super.key,
     this.viewModel,
@@ -146,5 +148,5 @@ class _DuetBuilderState<D, B> extends State<DuetBuilder<D, B>> {
   }
 }
 
-/// Alias cho ReactiveBuilder
+/// Backward compatibility alias for [DuetBuilder].
 typedef ReactiveBuilder<D, B> = DuetBuilder<D, B>;

@@ -1,23 +1,23 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:duet/src/core/duet_core.dart';
 import 'package:duet/src/core/duet_provider.dart';
 import 'package:duet/src/widgets/duet_scope.dart';
 
 /// {@template duet_listener}
-/// Widget tr�?giúp bọc và lắng nghe các s�?kiện 1 lần (Side-Effect Events như Toast, Navigation, Dialog) phát ra t�?[Duet].
+/// A helper widget that listens for one-shot side-effect events (Toasts, Navigation, Dialogs) emitted from a [Duet].
 /// {@endtemplate}
 class DuetListener<VM extends Duet, E> extends StatefulWidget {
-  /// ViewModel liên kết tùy chọn (Nếu null s�?t�?tìm kiếm t�?BuildContext).
+  /// Explicitly provided ViewModel instance (if omitted, looked up via [BuildContext]).
   final VM? viewModel;
 
-  /// Callback x�?lý s�?kiện khi có [E] phát ra t�?ViewModel.
+  /// Callback executed when a side-effect event [E] is emitted by the ViewModel.
   final void Function(BuildContext context, E event) onEvent;
 
-  /// B�?lọc điều kiện tùy chọn quyết định s�?kiện [E] có được kích hoạt callback [onEvent] hay không.
+  /// Optional condition filtering whether [onEvent] should be triggered for event [E].
   final bool Function(E event)? listenWhen;
 
-  /// Cây Widget con phía dưới.
+  /// Child widget subtree.
   final Widget child;
 
   /// {@macro duet_listener}
@@ -86,23 +86,23 @@ class _DuetListenerState<VM extends Duet, E>
   }
 }
 
-/// Alias cho ReactiveListener
+/// Backward compatibility alias for [DuetListener].
 typedef ReactiveListener<VM extends Duet, E> = DuetListener<VM, E>;
 
 /// {@template duet_behavior_listener}
-/// Widget tr�?giúp bọc và lắng nghe trực tiếp s�?thay đổi trạng thái [behaviorNotifier] t�?[Duet].
+/// A helper widget that directly listens to UI behavior state updates [Duet.behaviorNotifier] from a [Duet].
 /// {@endtemplate}
 class DuetBehaviorListener<D, B> extends StatefulWidget {
-  /// ViewModel liên kết tùy chọn (Nếu null s�?t�?tìm kiếm t�?BuildContext).
+  /// Explicitly provided ViewModel instance (if omitted, looked up via [BuildContext]).
   final Duet<D, B>? viewModel;
 
-  /// Callback x�?lý khi [behaviorState] thay đổi.
+  /// Callback executed when [behaviorState] changes.
   final void Function(BuildContext context, B behavior) listener;
 
-  /// B�?lọc điều kiện tùy chọn so sánh [previous] và [current] behavior.
+  /// Optional condition comparing [previous] and [current] UI behavior states.
   final bool Function(B previous, B current)? listenWhen;
 
-  /// Cây Widget con phía dưới.
+  /// Child widget subtree.
   final Widget child;
 
   /// {@macro duet_behavior_listener}
@@ -171,5 +171,5 @@ class _DuetBehaviorListenerState<D, B>
   }
 }
 
-/// Alias cho ReactiveBehaviorListener
+/// Backward compatibility alias for [DuetBehaviorListener].
 typedef ReactiveBehaviorListener<D, B> = DuetBehaviorListener<D, B>;
