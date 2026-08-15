@@ -101,7 +101,7 @@ class ProductCard extends StatelessWidget {
             // Add to Cart Button
             IconButton.filledTonal(
               icon: const Icon(Icons.add_shopping_cart),
-              tooltip: "Th  m v  o gi   ?,
+              // tooltip: "Th  m v  o gi   ?,
               onPressed: () {
                 vm.addItem(
                   id: product.id,

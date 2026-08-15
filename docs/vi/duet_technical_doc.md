@@ -4,6 +4,11 @@
 > **Vị trí tài liệu**: `docs/duet_technical_doc.md`  
 > **Phiên bản**: 3.0 (Chuyển đổi toàn diện sang kiến trúc Duet Native APIs).
 
+> **Ghi chú hiện hành:** Exact lookup `DuetScope.of<VM>` dùng index
+> `InheritedElement` của Flutter. API legacy tra theo `<D, B>` giữ fallback
+> duyệt ancestor để tương thích; vì vậy không nên mô tả mọi lookup là O(1).
+> Code mới nên ưu tiên `DuetWatch<VM>`.
+
 ---
 
 ## 📋 MỤC LỤC
@@ -12,14 +17,14 @@
 2. [Từng Bước Xây Dựng & Triển Khai Mã Nguồn](#2-từng-bước-xây-dựng--triển-khai-mã-nguồn)
    - [Bước 1: Chuẩn hóa Trạng thái UI với Sealed Classes (`UiState`)](#bước-1-chuẩn-hóa-trạng-thái-ui-với-sealed-classes-uistate)
    - [Bước 2: Nền tảng ViewModel Kép (`Duet` & `DuetValueNotifier`)](#bước-2-nền-tảng-viewmodel-kép-duet--duetvaluenotifier)
-   - [Bước 3: Hệ thống Scope Truy vấn O(1) & Dependency Injection (`_AnyDuetScope`, `DuetScope` & `DuetRegistry`)](#bước-3-hệ-thống-scope-truy-vấn-o1--dependency-injection-_anyduetscope-duetscope--duetregistry)
+   - [Bước 3: Hệ thống Scope & Dependency Injection (`_AnyDuetScope`, `DuetScope` & `DuetRegistry`)](#bước-3-hệ-thống-scope-truy-vấn-o1--dependency-injection-_anyduetscope-duetscope--duetregistry)
    - [Bước 4: Quản lý Vòng đời Scoped ViewModel Độc lập (`DuetStateMixin` & `DuetView`)](#bước-4-quản-lý-vòng-đời-scoped-viewmodel-độc-lập-duetstatemixin--duetview)
    - [Bước 5: Xử lý Side-Effect Events & Notification 1 lần (`DuetListener` & `DuetBehaviorListener`)](#bước-5-xử-lý-side-effect-events--notification-1-lần-duetlistener--duetbehaviorlistener)
    - [Bước 6: Tối ưu Hiệu năng & Khắc phục Reactive Glitch (`batch()` & `emitState()`)](#bước-6-tối-ưu-hiệu-năng--khắc-phục-reactive-glitch-batch--emitstate)
    - [Bước 7: Bộ UI Widgets Phản ứng Tự động Đồng bộ (`DuetBuilder` & `DuetSelector`)](#bước-7-bộ-ui-widgets-phản-ứng-tự-động-đồng-bộ-duetbuilder--duetselector)
 3. [Phân Tích Thuật Toán & Cơ Chế Hoạt Động Cốt Lõi](#3-phân-tích-thuật-toán--cơ-chế-hoạt-động-cốt-lõi)
    - [3.1 Thuật toán Đếm tham chiếu (Reference Counting) & AutoDispose](#31-thuật-toán-đếm-tham-chiếu-reference-counting--autodispose)
-   - [3.2 Cơ chế Truy vấn O(1) qua InheritedWidget Marker (`_AnyDuetScope`)](#32-cơ-chế-truy-vấn-o1-qua-inheritedwidget-marker-_anyduetscope)
+   - [3.2 Cơ chế Truy vấn Scope](#32-cơ-chế-truy-vấn-scope)
    - [3.3 Tối ưu hóa tầng Flutter Engine (Synchronous Rebuild & Transactional Batching)](#33-tối-ưu-hóa-tầng-flutter-engine-synchronous-rebuild--transactional-batching)
 4. [Bảng So Sánh Kiến Trúc Chi Tiết](#4-bảng-so-sánh-kiến-trúc-chi-tiết)
 5. [Hướng Dẫn Sử Dụng & Pattern Mã Nguồn Mẫu](#5-hướng-dẫn-sử-dụng--pattern-mã-nguồn-mẫu)
@@ -77,16 +82,17 @@ Tại [duet_core.dart](file:///d:/flutter_project/testing_things/lib/duet/src/co
 
 ```dart
 class DuetValueNotifier<T> extends ValueNotifier<T> {
-  bool _isBatching = false;
+  int _batchDepth = 0;
   bool _hasPendingNotify = false;
 
   DuetValueNotifier(super.value);
 
-  void beginBatch() => _isBatching = true;
+  void beginBatch() => _batchDepth++;
 
   void endBatch() {
-    _isBatching = false;
-    if (_hasPendingNotify) {
+    if (_batchDepth == 0) return;
+    _batchDepth--;
+    if (_batchDepth == 0 && _hasPendingNotify) {
       _hasPendingNotify = false;
       notifyListeners();
     }
@@ -94,7 +100,7 @@ class DuetValueNotifier<T> extends ValueNotifier<T> {
 
   @override
   void notifyListeners() {
-    if (_isBatching) {
+    if (_batchDepth > 0) {
       _hasPendingNotify = true;
     } else {
       super.notifyListeners();
@@ -138,7 +144,7 @@ typedef BaseViewModel<D, B> = Duet<D, B>;
 
 ---
 
-### Bước 3: Hệ thống Scope Truy vấn O(1) & Dependency Injection (`_AnyDuetScope`, `DuetScope` & `DuetRegistry`)
+### Bước 3: Hệ thống Scope & Dependency Injection (`_AnyDuetScope`, `DuetScope` & `DuetRegistry`)
 
 Tại [duet_provider.dart](file:///d:/flutter_project/testing_things/lib/duet/src/core/duet_provider.dart), chúng ta xây dựng `DuetRegistry` làm Service Locator toàn cục chỉ dành riêng cho các **Global Singleton Duet** (`isGlobal => true`):
 
@@ -147,7 +153,7 @@ class DuetRegistry {
   static final Map<Object, Duet> _instances = {};
 
   static T get<T extends Duet>(T Function() creator, {Object? key}) {
-    final registryKey = key != null ? Object.hash(T, key) : T;
+    final registryKey = key != null ? (T, key) : T;
 
     if (!_instances.containsKey(registryKey) || _instances[registryKey]!.isDisposed) {
       _instances[registryKey] = creator();
@@ -288,7 +294,7 @@ void emit({D? data, B? ui}) => emitState(data: data, ui: ui);
 Tại [duet_builder.dart](file:///d:/flutter_project/testing_things/lib/duet/src/widgets/duet_builder.dart) và [duet_selector.dart](file:///d:/flutter_project/testing_things/lib/duet/src/widgets/duet_selector.dart), các Widget tự động truy vấn Duet từ `BuildContext` nếu không truyền `viewModel:` trực tiếp.
 
 > 💡 **Cải tiến DX cho `DuetSelector`**:  
-> `DuetSelector<VM, T>` sử dụng **2 kiểu Generic `<VM, T>`** (`VM` kiểu Duet và `T` kiểu dữ liệu trích xuất), loại bỏ tiếng ồn mã nguồn mà vẫn bảo toàn 100% hiệu năng truy vấn $O(1)$ qua `DuetScope.of<VM>(context)`.
+> `DuetSelector<VM, T>` sử dụng **2 kiểu Generic `<VM, T>`** (`VM` kiểu Duet và `T` kiểu dữ liệu trích xuất). Exact typed lookup đi qua `DuetScope.of<VM>`; code mới có thể dùng `DuetWatch<VM>` khi không cần selector.
 
 ```dart
 class _DuetSelectorState<VM extends Duet, T> extends State<DuetSelector<VM, T>> {
@@ -325,31 +331,16 @@ stateDiagram-v2
     Disposed --> [*]: unregisterVM()
 ```
 
-### 3.2 Cơ chế Truy vấn O(1) qua InheritedWidget Marker (`_AnyDuetScope`)
+### 3.2 Cơ chế Truy vấn Scope
 
-Khi một màn hình sử dụng `DuetView<VM>` hoặc `buildScope`, một `DuetScope<VM>` được bọc ở gốc màn hình:
+Khi một màn hình sử dụng `DuetView<VM>` hoặc `buildScope`, một `DuetScope<VM>` được bọc ở gốc màn hình. Lookup exact theo `VM` đi qua index `InheritedElement`; fallback legacy theo cặp data/behavior có thể duyệt ancestor:
 
 - Các Widget con bên dưới khi dùng `DuetBuilder<D, B>()` mà không điền `viewModel:` sẽ tự động gọi `DuetScope.find<D, B>(context)`.
 
 - Bản thân Flutter Engine khi gọi `setState()` sẽ thực thi `Element.markNeedsBuild()`. Nếu `_dirty == true`, Flutter sẽ **KHÔNG** xếp lịch build trùng lặp trong cùng 1 frame.
-- Để phòng ngừa trường hợp thông báo được gửi từ nhiều Notifiers khác nhau trong cùng 1 tick đồng bộ, `DuetBuilder` áp dụng cờ **Microtask De-duplication**:
-
-```dart
-bool _rebuildScheduled = false;
-
-void _rebuild() {
-  if (!mounted || _rebuildScheduled) return;
-  _rebuildScheduled = true;
-
-  scheduleMicrotask(() {
-    if (mounted) {
-      setState(() {
-        _rebuildScheduled = false;
-      });
-    }
-  });
-}
-```
+- Khi hai notifier gọi `setState()` trong cùng frame, Flutter tự giữ Element ở
+  trạng thái dirty và không build lại hai lần. Duet không thêm microtask queue,
+  nhờ đó state dispatch vẫn đồng bộ và không phát sinh độ trễ ngoài ý muốn.
 
 ---
 
@@ -360,7 +351,7 @@ void _rebuild() {
 | **Thư viện ngoài** | **0% (100% Native)** | Phụ thuộc `flutter_bloc` | Phụ thuộc `flutter_riverpod` | Phụ thuộc `get` |
 | **Phân tách State** | Chuẩn hóa `D` (Data) & `B` (Behavior) | Phụ thuộc dev | Phụ thuộc dev (`AsyncValue`) | Phụ thuộc dev |
 | **Chống Glitch (Batching)** | Tích hợp sẵn `emit(data, ui)` | Tích hợp trong Stream | Tích hợp trong Ref | Không có |
-| **Đụng độ Key Singleton** | **0% (nhờ `identityHashCode`)** | Không dùng Key | Không dùng Key | Dễ đụng độ Key khi Push |
+| **Registry key** | Record `(Type, key)`, Map kiểm tra equality | Không dùng Key | Không dùng Key | Tag do người dùng quản lý |
 | **Trải nghiệm gõ code (DX)** | Rất mượt (Tự tìm VM qua Scope) | Cần `BlocProvider` / `BlocBuilder` | Cần `ConsumerWidget` / `ref` | Cần `Get.put` / `GetView` |
 
 ---

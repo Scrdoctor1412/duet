@@ -29,7 +29,9 @@ class ProfileViewModel extends Duet<ProfileData, ProfileUiBehavior> {
     emit(
       data: data.copyWith(notificationsEnabled: enabled),
       ui: ProfileUiSuccess(
-        enabled ? "     b   t th  ng b  o    ng d   ng" : "     t   t th  ng b  o    ng d   ng",
+        enabled
+            ? "     b   t th  ng b  o    ng d   ng"
+            : "     t   t th  ng b  o    ng d   ng",
       ),
     );
   }
@@ -40,7 +42,8 @@ class ProfileViewModel extends Duet<ProfileData, ProfileUiBehavior> {
     required String bio,
   }) async {
     if (name.trim().isEmpty) {
-      emitBehavior(ProfileUiError("H   ?v   t  n kh  ng        c      ?tr   ng!"));
+      emitBehavior(
+          ProfileUiError("H   ?v   t  n kh  ng        c      ?tr   ng!"));
       return;
     }
 

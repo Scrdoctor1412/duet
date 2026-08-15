@@ -10,7 +10,8 @@ void main() {
   });
 
   group('ProfileViewModel (Local ViewModel without isGlobal)', () {
-    test('isGlobal should be false and autoDispose should be true by default', () {
+    test('isGlobal should be false and autoDispose should be true by default',
+        () {
       final vm = ProfileViewModel();
       expect(vm.isGlobal, isFalse);
       expect(vm.autoDispose, isTrue);

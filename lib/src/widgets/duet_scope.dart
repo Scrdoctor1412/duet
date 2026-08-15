@@ -1,4 +1,4 @@
-﻿import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 import 'package:duet/src/core/duet_core.dart';
 
 abstract class _AnyDuetScope extends InheritedWidget {
@@ -22,35 +22,17 @@ class DuetScope<VM extends Duet> extends _AnyDuetScope {
     required super.child,
   });
 
-  /// Retrieves the nearest [Duet] instance of type [VM] up the widget tree in $O(1)$ time.
+  /// Retrieves the nearest [Duet] instance of type [VM].
+  ///
+  /// The normal `DuetScope<VM>` path uses Flutter's inherited-element index in
+  /// O(1). The ancestor fallback only exists for dynamically typed or nested
+  /// legacy scopes.
   static VM of<VM extends Duet>(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<DuetScope<VM>>();
     if (scope != null) return scope.viewModel;
 
-    final anyScope = context.dependOnInheritedWidgetOfExactType<_AnyDuetScope>();
-    if (anyScope != null && anyScope.viewModel is VM) {
-      return anyScope.viewModel as VM;
-    }
-
-    VM? foundVM;
-    InheritedElement? foundElement;
-
-    context.visitAncestorElements((element) {
-      if (element is InheritedElement && element.widget is _AnyDuetScope) {
-        final scopeWidget = element.widget as _AnyDuetScope;
-        if (scopeWidget.viewModel is VM) {
-          foundVM = scopeWidget.viewModel as VM;
-          foundElement = element;
-          return false;
-        }
-      }
-      return true;
-    });
-
-    if (foundElement != null && foundVM != null) {
-      context.dependOnInheritedElement(foundElement!);
-      return foundVM!;
-    }
+    final fallback = _findMatching(context, (duet) => duet is VM);
+    if (fallback != null) return fallback as VM;
 
     assert(
       false,
@@ -68,30 +50,8 @@ class DuetScope<VM extends Duet> extends _AnyDuetScope {
   }) {
     if (explicitVM != null) return explicitVM;
 
-    final anyScope = context.dependOnInheritedWidgetOfExactType<_AnyDuetScope>();
-    if (anyScope != null && anyScope.viewModel is Duet<D, B>) {
-      return anyScope.viewModel as Duet<D, B>;
-    }
-
-    Duet<D, B>? foundVM;
-    InheritedElement? foundElement;
-
-    context.visitAncestorElements((element) {
-      if (element is InheritedElement && element.widget is _AnyDuetScope) {
-        final scope = element.widget as _AnyDuetScope;
-        if (scope.viewModel is Duet<D, B>) {
-          foundVM = scope.viewModel as Duet<D, B>;
-          foundElement = element;
-          return false;
-        }
-      }
-      return true;
-    });
-
-    if (foundElement != null && foundVM != null) {
-      context.dependOnInheritedElement(foundElement!);
-      return foundVM!;
-    }
+    final fallback = _findMatching(context, (duet) => duet is Duet<D, B>);
+    if (fallback != null) return fallback as Duet<D, B>;
 
     assert(
       false,
@@ -103,6 +63,32 @@ class DuetScope<VM extends Duet> extends _AnyDuetScope {
       '3. Wrap the subtree in a `DuetScope`.',
     );
     throw StateError('Duet for <$D, $B> not found in BuildContext.');
+  }
+
+  static Duet? _findMatching(
+    BuildContext context,
+    bool Function(Duet duet) matches,
+  ) {
+    Duet? foundVM;
+    InheritedElement? foundElement;
+
+    context.visitAncestorElements((element) {
+      if (element is InheritedElement && element.widget is _AnyDuetScope) {
+        final scope = element.widget as _AnyDuetScope;
+        if (matches(scope.viewModel)) {
+          foundVM = scope.viewModel;
+          foundElement = element;
+          return false;
+        }
+      }
+      return true;
+    });
+
+    if (foundElement != null && foundVM != null) {
+      context.dependOnInheritedElement(foundElement!);
+      return foundVM;
+    }
+    return null;
   }
 
   @override

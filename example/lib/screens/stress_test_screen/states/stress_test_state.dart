@@ -83,7 +83,8 @@ class StressTestData {
       matrixCells: matrixCells ?? this.matrixCells,
       unbatchedNotifies: unbatchedNotifies ?? this.unbatchedNotifies,
       batchedNotifies: batchedNotifies ?? this.batchedNotifies,
-      isBatchingTestRunning: isBatchingTestRunning ?? this.isBatchingTestRunning,
+      isBatchingTestRunning:
+          isBatchingTestRunning ?? this.isBatchingTestRunning,
       eventsEmitted: eventsEmitted ?? this.eventsEmitted,
       eventsReceived: eventsReceived ?? this.eventsReceived,
       isEventFloodRunning: isEventFloodRunning ?? this.isEventFloodRunning,

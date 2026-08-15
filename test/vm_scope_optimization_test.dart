@@ -20,7 +20,7 @@ class ScopeTestViewModel extends Duet<SampleData, UiState> {
 }
 
 void main() {
-  testWidgets('DuetScope resolves O(1) lookup via _AnyDuetScope without type errors',
+  testWidgets('DuetScope resolves exact VM and legacy data/behavior lookups',
       (WidgetTester tester) async {
     final viewModel = ScopeTestViewModel();
 
@@ -34,8 +34,10 @@ void main() {
                 // Deeply nested context lookup
                 return Builder(
                   builder: (childContext) {
-                    final vm = DuetScope.find<SampleData, UiState>(childContext);
-                    final exactVm = DuetScope.of<ScopeTestViewModel>(childContext);
+                    final vm =
+                        DuetScope.find<SampleData, UiState>(childContext);
+                    final exactVm =
+                        DuetScope.of<ScopeTestViewModel>(childContext);
                     expect(identical(vm, exactVm), isTrue);
                     return DuetBuilder<SampleData, UiState>(
                       builder: (context, data) => Text(data.title),

@@ -1,3 +1,26 @@
+# 1.1.0
+
+- Added `SimpleDuet<D>` with built-in `UiState` lifecycle and async helpers.
+- Added ViewModel-first `DuetWatch<VM>` data, UI, and combined builders.
+- Added instance-bound `watchData`, `watchUi`, `watchBoth`, `selectData`,
+  `selectUi`, and `listen` Flutter helpers.
+- Added `DuetView.onDuetReady` for lifecycle-owned initial loading.
+- Added the intentional `Duets.shared/find/contains/reset` service locator for
+  state shared across screens without requiring `BuildContext`.
+- Added `UiState` factories and optional loading/success/error payloads while
+  preserving support for external custom subclasses.
+- Fixed global `DuetView` binding so its factory is not evaluated twice.
+- Improved nested batching, direct-emission observer coverage, nullable atomic
+  emission, registry cleanup, and runtime ViewModel replacement handling.
+- Added an explicit latest-wins async policy for search, refresh, and filtering.
+- Fixed `DuetConsumer` subscriptions and reference counts when dependencies
+  change at runtime.
+- Fixed shared registry reset so mounted consumers can safely finish their
+  lifecycle before the old instance is disposed.
+- Added `emitPatch` to atomically update nullable data or UI channels.
+- Clarified the O(1) exact-scope path versus the legacy ancestor fallback.
+- Removed the direct `meta` dependency; Duet now depends only on Flutter SDK.
+
 # 1.0.0
 
 - Initial release of `duet` package.

@@ -149,7 +149,8 @@ class StressTestViewModel extends Duet<StressTestData, StressTestUiBehavior> {
       return;
     }
 
-    emitData(data.copyWith(isEventFloodRunning: true, eventsEmitted: 0, eventsReceived: 0));
+    emitData(data.copyWith(
+        isEventFloodRunning: true, eventsEmitted: 0, eventsReceived: 0));
     emitUi(const StressTestUiRunning('Event Flood Stream Test'));
 
     int seq = 0;

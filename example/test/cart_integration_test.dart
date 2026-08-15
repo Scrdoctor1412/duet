@@ -9,7 +9,8 @@ void main() {
     DuetRegistry.resetAll();
   });
 
-  testWidgets('Global CartViewModel preserves items added from ProductScreen when CartScreen opens',
+  testWidgets(
+      'Global CartViewModel preserves items added from ProductScreen when CartScreen opens',
       (WidgetTester tester) async {
     final cartVM = getDuet(() => CartViewModel());
     cartVM.addItem(

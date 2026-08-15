@@ -6,14 +6,14 @@ class AuthViewModel extends Duet<AuthData, AuthUiBehavior> {
   final AuthStorageService _storageService;
 
   AuthViewModel({AuthStorageService? storageService})
-    : _storageService = storageService ?? AuthStorageService(),
-      super(
-        initialData: const AuthData(
-          isAuthenticated: false,
-          isInitializing: true,
-        ),
-        initialBehavior: const AuthUiIdle(),
-      ) {
+      : _storageService = storageService ?? AuthStorageService(),
+        super(
+          initialData: const AuthData(
+            isAuthenticated: false,
+            isInitializing: true,
+          ),
+          initialBehavior: const AuthUiIdle(),
+        ) {
     checkAuthSession();
   }
 
@@ -49,7 +49,8 @@ class AuthViewModel extends Duet<AuthData, AuthUiBehavior> {
   Future<bool> login(String email, String password) async {
     if (email.trim().isEmpty || password.trim().isEmpty) {
       emitBehavior(
-        const AuthUiError("Vui l  ng nh   p      y      ?Email v   M   t kh   u!"),
+        const AuthUiError(
+            "Vui l  ng nh   p      y      ?Email v   M   t kh   u!"),
       );
       return false;
     }
@@ -60,7 +61,8 @@ class AuthViewModel extends Duet<AuthData, AuthUiBehavior> {
     }
 
     if (password.length < 4) {
-      emitBehavior(const AuthUiError("M   t kh   u ph   i c     t nh   t 4 k   t   ?"));
+      emitBehavior(
+          const AuthUiError("M   t kh   u ph   i c     t nh   t 4 k   t   ?"));
       return false;
     }
 

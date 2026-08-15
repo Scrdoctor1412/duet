@@ -36,7 +36,8 @@ class RefCountingSpawnerSection extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               "T   o & h   y h  ng lo   t Sub-ViewModel dynamically. Khi Widget unmount, refCount gi   m v   ?0 v   t   ?     ng dispose kh   i RAM.",
-              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
+              style:
+                  theme.textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
             ),
             const SizedBox(height: 12),
             DuetBuilder<StressTestData, StressTestUiBehavior>(
@@ -67,7 +68,8 @@ class RefCountingSpawnerSection extends StatelessWidget {
                         ),
                         ElevatedButton.icon(
                           onPressed: vm.clearAllSubVMs,
-                          icon: const Icon(Icons.delete_sweep_outlined, size: 16),
+                          icon:
+                              const Icon(Icons.delete_sweep_outlined, size: 16),
                           label: const Text("CLEAR ALL"),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.pink.shade700,
@@ -81,15 +83,18 @@ class RefCountingSpawnerSection extends StatelessWidget {
                       height: 150,
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.teal.withOpacity(0.05),
+                        color: Colors.teal.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.teal.withOpacity(0.2)),
+                        border: Border.all(
+                          color: Colors.teal.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: data.spawnedSubVMCount == 0
                           ? const Center(
                               child: Text(
                                 "Ch  a c   Sub-ViewModel n  o        c mount. Nh   n n  t      ?t   o m   i!",
-                                style: TextStyle(color: Colors.grey, fontSize: 12),
+                                style:
+                                    TextStyle(color: Colors.grey, fontSize: 12),
                               ),
                             )
                           : GridView.builder(

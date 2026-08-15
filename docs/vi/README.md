@@ -31,7 +31,11 @@ Chào mừng bạn đến với tài liệu chính thức của **`duet`** — m
    * 4 Quy tắc cốt lõi giúp Dev mới nắm vững dự án trong 2 phút
    * Bảng Checklist Do's & Don'ts chuẩn hóa mã nguồn
 6. 📖 **[Báo cáo Kỹ thuật Từng bước Chi tiết (Technical Step-by-Step Doc)](duet_technical_doc.md)**
-   * Ghi lại 7 bước chi tiết thiết kế, giải thuật Reference Counting, chống Key Collision với `identityHashCode` và chống Reactive Glitch với `emit()`.
+   * Ghi lại thiết kế Reference Counting, registry key dạng record và cơ chế batching với `emit()`.
+7. ✨ **[API đơn giản theo cấp độ](simple_api.md)**
+   * `SimpleDuet<D>` cho màn hình nhỏ và vừa
+   * `DuetWatch<VM>` chỉ cần khai báo một kiểu ViewModel
+   * `runTask()` và `runData()` chuẩn hóa tác vụ bất đồng bộ
 
 ---
 
