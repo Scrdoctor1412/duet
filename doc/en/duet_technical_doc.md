@@ -1,7 +1,7 @@
 # 📖 TECHNICAL REPORT: DESIGN & IMPLEMENTATION OF `DUET`
 
 > **Project**: `duet` - Pure Flutter Dual-Notifier State Management & MVVM Architecture (Zero External Dependencies).  
-> **Location**: `docs/en/duet_technical_doc.md`  
+> **Location**: `doc/en/duet_technical_doc.md`
 > **Version**: 3.0
 
 > **Current note:** Exact `DuetScope.of<VM>` lookup uses Flutter's inherited

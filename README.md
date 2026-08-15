@@ -53,11 +53,11 @@ class CounterScreen extends DuetView<CounterDuet> {
 
 ## 📖 Documentation
 
-For in-depth guides, technical architecture, and best practices, check the `docs/` folder:
-- [Documentation Hub](docs/README.md)
-- [Progressive API (Vietnamese)](docs/vi/simple_api.md)
-- [Overview (English)](docs/en/overview.md)
-- [Core Concepts (English)](docs/en/core_concepts.md)
+For in-depth guides, technical architecture, and best practices, check the `doc/` folder:
+- [Documentation Hub](doc/README.md)
+- [Progressive API (Vietnamese)](doc/vi/simple_api.md)
+- [Overview (English)](doc/en/overview.md)
+- [Core Concepts (English)](doc/en/core_concepts.md)
 
 ## Shared state without `BuildContext`
 

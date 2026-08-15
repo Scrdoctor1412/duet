@@ -1,7 +1,7 @@
 # 📖 BÁO CÁO KỸ THUẬT CHI TIẾT: THIẾT KẾ VÀ HOÀN THIỆN THƯ VIỆN `DUET`
 
 > **Dự án**: `duet` - Giải pháp Quản lý Trạng thái & Kiến trúc Dual-Notifier MVVM Thuần Flutter (Zero Dependencies).  
-> **Vị trí tài liệu**: `docs/duet_technical_doc.md`  
+> **Vị trí tài liệu**: `doc/vi/duet_technical_doc.md`
 > **Phiên bản**: 3.0 (Chuyển đổi toàn diện sang kiến trúc Duet Native APIs).
 
 > **Ghi chú hiện hành:** Exact lookup `DuetScope.of<VM>` dùng index
