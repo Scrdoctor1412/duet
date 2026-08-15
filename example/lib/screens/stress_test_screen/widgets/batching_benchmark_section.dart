@@ -21,7 +21,8 @@ class BatchingBenchmarkSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.auto_awesome_motion_rounded, color: Colors.purple),
+                const Icon(Icons.auto_awesome_motion_rounded,
+                    color: Colors.purple),
                 const SizedBox(width: 8),
                 Text(
                   "3. Transactional Batching Benchmark",
@@ -34,7 +35,8 @@ class BatchingBenchmarkSection extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               "Th   c hi   n 100 l   n c   p nh   t state li  n ti   p. Ki   m ch   ng c   ch   ?gom th  ng b  o (Batching) gi  p tri   t ti  u 99% Rebuilds th   a & Glitches.",
-              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
+              style:
+                  theme.textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
             ),
             const SizedBox(height: 16),
             DuetBuilder<StressTestData, StressTestUiBehavior>(
@@ -47,9 +49,11 @@ class BatchingBenchmarkSection extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.08),
+                              color: Colors.red.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.red.withOpacity(0.3)),
+                              border: Border.all(
+                                color: Colors.red.withValues(alpha: 0.3),
+                              ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,7 +77,8 @@ class BatchingBenchmarkSection extends StatelessWidget {
                                 ),
                                 const Text(
                                   "G  y ra 100 re-renders li  n ti   p",
-                                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                                  style: TextStyle(
+                                      fontSize: 10, color: Colors.grey),
                                 ),
                               ],
                             ),
@@ -84,9 +89,11 @@ class BatchingBenchmarkSection extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.08),
+                              color: Colors.green.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.green.withOpacity(0.3)),
+                              border: Border.all(
+                                color: Colors.green.withValues(alpha: 0.3),
+                              ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,7 +117,8 @@ class BatchingBenchmarkSection extends StatelessWidget {
                                 ),
                                 const Text(
                                   "Ch   ?1 re-render cu   i c  ng!",
-                                  style: TextStyle(fontSize: 10, color: Colors.grey),
+                                  style: TextStyle(
+                                      fontSize: 10, color: Colors.grey),
                                 ),
                               ],
                             ),

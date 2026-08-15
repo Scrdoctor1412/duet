@@ -1,4 +1,4 @@
-﻿import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 import 'package:duet/src/core/duet_core.dart';
 import 'package:duet/src/core/duet_provider.dart';
 import 'package:duet/src/widgets/duet_scope.dart';
@@ -28,7 +28,7 @@ class DuetSelector<VM extends Duet, T> extends StatefulWidget {
     required this.selector,
     required this.builder,
     this.shouldRebuild,
-  })  : _isUiSelector = false;
+  }) : _isUiSelector = false;
 
   /// Listens to updates on a specific field of UI behavior state (`behaviorNotifier`).
   const DuetSelector.ui({
@@ -37,11 +37,10 @@ class DuetSelector<VM extends Duet, T> extends StatefulWidget {
     required this.selector,
     required this.builder,
     this.shouldRebuild,
-  })  : _isUiSelector = true;
+  }) : _isUiSelector = true;
 
   @override
-  State<DuetSelector<VM, T>> createState() =>
-      _DuetSelectorState<VM, T>();
+  State<DuetSelector<VM, T>> createState() => _DuetSelectorState<VM, T>();
 }
 
 class _DuetSelectorState<VM extends Duet, T>
@@ -60,22 +59,48 @@ class _DuetSelectorState<VM extends Duet, T>
     final newVM = widget.viewModel ?? DuetScope.of<VM>(context);
 
     if (_effectiveVM != newVM) {
-      if (_effectiveVM != null && _notifier != null) {
-        _notifier!.removeListener(_onStateChanged);
-        _effectiveVM!.release(() {
-          if (_effectiveVM!.isGlobal) {
-            unregisterVM(_effectiveVM!);
-          }
-        });
-      }
+      _detach();
+      _attach(newVM);
+    }
+  }
 
-      _effectiveVM = newVM;
-      _effectiveVM!.retain();
-      _notifier = widget._isUiSelector
-          ? _effectiveVM!.behaviorNotifier
-          : _effectiveVM!.dataNotifier;
-      _selectedValue = _computeSelectedValue();
+  @override
+  void didUpdateWidget(covariant DuetSelector<VM, T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.viewModel != widget.viewModel) {
+      _detach();
+      _attach(widget.viewModel ?? DuetScope.of<VM>(context));
+      return;
+    }
+
+    if (oldWidget._isUiSelector != widget._isUiSelector) {
+      _notifier?.removeListener(_onStateChanged);
+      _notifier = _selectNotifier();
       _notifier!.addListener(_onStateChanged);
+    }
+    _selectedValue = _computeSelectedValue();
+  }
+
+  void _attach(VM viewModel) {
+    _effectiveVM = viewModel;
+    _effectiveVM!.retain();
+    _notifier = _selectNotifier();
+    _selectedValue = _computeSelectedValue();
+    _notifier!.addListener(_onStateChanged);
+  }
+
+  ValueNotifier<dynamic> _selectNotifier() {
+    return widget._isUiSelector
+        ? _effectiveVM!.behaviorNotifier
+        : _effectiveVM!.dataNotifier;
+  }
+
+  void _detach() {
+    _notifier?.removeListener(_onStateChanged);
+    _notifier = null;
+    if (_effectiveVM != null) {
+      releaseDuet(_effectiveVM!);
+      _effectiveVM = null;
     }
   }
 
@@ -95,16 +120,7 @@ class _DuetSelectorState<VM extends Duet, T>
 
   @override
   void dispose() {
-    if (_notifier != null) {
-      _notifier!.removeListener(_onStateChanged);
-    }
-    if (_effectiveVM != null) {
-      _effectiveVM!.release(() {
-        if (_effectiveVM!.isGlobal) {
-          unregisterVM(_effectiveVM!);
-        }
-      });
-    }
+    _detach();
     super.dispose();
   }
 

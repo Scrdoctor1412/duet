@@ -1,4 +1,4 @@
-      import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:duet/duet.dart';
 import 'package:duet_example/screens/cart_screen/cart_screen_viewmodel.dart';
@@ -103,7 +103,8 @@ class CartScreen extends DuetView<CartViewModel> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text("X  c nh   n"),
-        content: const Text("B   n c   ch   c ch   n mu   n x  a to  n b   ?gi   ?h  ng?"),
+        content: const Text(
+            "B   n c   ch   c ch   n mu   n x  a to  n b   ?gi   ?h  ng?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),

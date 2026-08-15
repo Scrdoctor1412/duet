@@ -1,4 +1,4 @@
-﻿import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 
 /// Helper widget that subscribes to a list of arbitrary [Listenable] instances and rebuilds its widget subtree.
 class DuetListenableBuilder extends StatefulWidget {
@@ -15,12 +15,10 @@ class DuetListenableBuilder extends StatefulWidget {
   });
 
   @override
-  State<DuetListenableBuilder> createState() =>
-      _DuetListenableBuilderState();
+  State<DuetListenableBuilder> createState() => _DuetListenableBuilderState();
 }
 
-class _DuetListenableBuilderState
-    extends State<DuetListenableBuilder> {
+class _DuetListenableBuilderState extends State<DuetListenableBuilder> {
   @override
   void initState() {
     super.initState();

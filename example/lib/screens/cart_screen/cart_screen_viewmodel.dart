@@ -90,7 +90,8 @@ class CartViewModel extends Duet<CartData, CartUiBehavior> {
 
     emit(
       data: const CartData(items: []),
-      ui: const CartUiSuccess("Thanh to  n th  nh c  ng! C   m   n b   n      mua h  ng."),
+      ui: const CartUiSuccess(
+          "Thanh to  n th  nh c  ng! C   m   n b   n      mua h  ng."),
     );
   }
 

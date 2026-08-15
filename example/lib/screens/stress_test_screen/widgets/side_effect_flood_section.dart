@@ -38,7 +38,8 @@ class SideEffectFloodSection extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 "Ph  t h  ng ngh  n s   ?ki   n Side-Effect 1 l   n qua eventStream. Ki   m tra DuetListener ti   p nh   n      y      ?100% kh  ng m   t m  t.",
-                style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: Colors.grey[700]),
               ),
               const SizedBox(height: 16),
               DuetBuilder<StressTestData, StressTestUiBehavior>(
@@ -51,10 +52,10 @@ class SideEffectFloodSection extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.indigo.withOpacity(0.08),
+                                color: Colors.indigo.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: Colors.indigo.withOpacity(0.3),
+                                  color: Colors.indigo.withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Column(
@@ -62,7 +63,8 @@ class SideEffectFloodSection extends StatelessWidget {
                                 children: [
                                   const Text(
                                     "Events Emitted",
-                                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                                    style: TextStyle(
+                                        fontSize: 11, color: Colors.grey),
                                   ),
                                   Text(
                                     "${data.eventsEmitted}",
@@ -81,10 +83,10 @@ class SideEffectFloodSection extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.cyan.withOpacity(0.08),
+                                color: Colors.cyan.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: Colors.cyan.withOpacity(0.3),
+                                  color: Colors.cyan.withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Column(
@@ -92,7 +94,8 @@ class SideEffectFloodSection extends StatelessWidget {
                                 children: [
                                   const Text(
                                     "Events Received",
-                                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                                    style: TextStyle(
+                                        fontSize: 11, color: Colors.grey),
                                   ),
                                   Text(
                                     "${data.eventsReceived}",

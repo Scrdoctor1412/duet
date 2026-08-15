@@ -15,7 +15,10 @@ class AuthErrorBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return DuetSelector<AuthViewModel, String?>.ui(
       viewModel: viewModel,
-      selector: (vm) => vm.ui is AuthUiError ? (vm.ui as AuthUiError).message : null,
+      selector: (vm) => switch (vm.ui) {
+        AuthUiError(:final message) => message,
+        _ => null,
+      },
       builder: (context, errorMessage) {
         if (errorMessage == null) return const SizedBox.shrink();
 

@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Install example dependencies
+        working-directory: example
+        run: flutter pub get
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib test example/lib example/test
+      - name: Analyze package
+        run: flutter analyze lib test
+      - name: Analyze example
+        working-directory: example
+        run: flutter analyze
+      - name: Run package tests
+        run: flutter test
+      - name: Run example tests
+        working-directory: example
+        run: flutter test
+      - name: Validate committed publish archive
+        shell: bash
+        run: |
+          package_dir="$(mktemp -d)"
+          git archive HEAD | tar -x -C "$package_dir"
+          cd "$package_dir"
+          dart pub publish --dry-run

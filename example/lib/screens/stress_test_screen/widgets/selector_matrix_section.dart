@@ -36,7 +36,8 @@ class SelectorMatrixSection extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               "Ma tr   n 120    d   ?li   u      c l   p. Khi c   p nh   t ng   u nhi  n 5   , ch   ?    ng 5         re-render nh   ?DuetSelector (Badge g  c th   ?hi   n s   ?l   n re-render t   ng   ).",
-              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
+              style:
+                  theme.textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -74,9 +75,11 @@ class SelectorMatrixSection extends StatelessWidget {
               height: 260,
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.05),
+                color: Colors.grey.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                border: Border.all(
+                  color: Colors.grey.withValues(alpha: 0.2),
+                ),
               ),
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -123,17 +126,17 @@ class _MatrixCellWidgetState extends State<_MatrixCellWidget> {
         _cellBuildCount++;
 
         final bool isUpdatedRecently = cellData.updateCount > 0;
-        final color = isUpdatedRecently
-            ? Colors.blue.shade600
-            : Colors.grey.shade300;
+        final color =
+            isUpdatedRecently ? Colors.blue.shade600 : Colors.grey.shade300;
 
         return Container(
           decoration: BoxDecoration(
             color: isUpdatedRecently
-                ? Colors.blue.withOpacity(0.15)
+                ? Colors.blue.withValues(alpha: 0.15)
                 : Colors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color, width: isUpdatedRecently ? 1.5 : 1),
+            border:
+                Border.all(color: color, width: isUpdatedRecently ? 1.5 : 1),
           ),
           padding: const EdgeInsets.all(2),
           child: Stack(
@@ -155,7 +158,9 @@ class _MatrixCellWidgetState extends State<_MatrixCellWidget> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
-                        color: isUpdatedRecently ? Colors.blue.shade900 : Colors.black87,
+                        color: isUpdatedRecently
+                            ? Colors.blue.shade900
+                            : Colors.black87,
                       ),
                     ),
                   ],
@@ -170,7 +175,8 @@ class _MatrixCellWidgetState extends State<_MatrixCellWidget> {
                     color: Colors.amber.shade700,
                     shape: BoxShape.circle,
                   ),
-                  constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                  constraints:
+                      const BoxConstraints(minWidth: 14, minHeight: 14),
                   child: Text(
                     "$_cellBuildCount",
                     textAlign: TextAlign.center,

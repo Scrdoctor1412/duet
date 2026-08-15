@@ -1,4 +1,4 @@
-﻿import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 import 'package:duet/src/core/duet_core.dart';
 import 'package:duet/src/core/duet_provider.dart';
 import 'package:duet/src/widgets/duet_scope.dart';
@@ -80,22 +80,49 @@ class _DuetBuilderState<D, B> extends State<DuetBuilder<D, B>> {
     final newVM = DuetScope.find<D, B>(context, explicitVM: widget.viewModel);
 
     if (_effectiveVM != newVM) {
-      if (_effectiveVM != null) {
-        for (final notifier in _notifiers) {
-          notifier.removeListener(_rebuild);
-        }
-        _effectiveVM!.release(() {
-          unregisterVM(_effectiveVM!);
-        });
-      }
-
-      _effectiveVM = newVM;
-      _effectiveVM!.retain();
-      _notifiers = _getNotifiers();
-      for (final notifier in _notifiers) {
-        notifier.addListener(_rebuild);
-      }
+      _detach();
+      _attach(newVM);
     }
+  }
+
+  @override
+  void didUpdateWidget(covariant DuetBuilder<D, B> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.viewModel != widget.viewModel) {
+      _detach();
+      _attach(DuetScope.find<D, B>(context, explicitVM: widget.viewModel));
+    } else if (oldWidget.target != widget.target) {
+      _unsubscribe();
+      _subscribe();
+    }
+  }
+
+  void _attach(Duet<D, B> viewModel) {
+    _effectiveVM = viewModel;
+    _effectiveVM!.retain();
+    _subscribe();
+  }
+
+  void _subscribe() {
+    _notifiers = _getNotifiers();
+    for (final notifier in _notifiers) {
+      notifier.addListener(_rebuild);
+    }
+  }
+
+  void _unsubscribe() {
+    for (final notifier in _notifiers) {
+      notifier.removeListener(_rebuild);
+    }
+    _notifiers = [];
+  }
+
+  void _detach() {
+    _unsubscribe();
+    if (_effectiveVM != null) {
+      releaseDuet(_effectiveVM!);
+    }
+    _effectiveVM = null;
   }
 
   List<ValueNotifier<dynamic>> _getNotifiers() {
@@ -120,14 +147,7 @@ class _DuetBuilderState<D, B> extends State<DuetBuilder<D, B>> {
 
   @override
   void dispose() {
-    for (final notifier in _notifiers) {
-      notifier.removeListener(_rebuild);
-    }
-    if (_effectiveVM != null) {
-      _effectiveVM!.release(() {
-        unregisterVM(_effectiveVM!);
-      });
-    }
+    _detach();
     super.dispose();
   }
 

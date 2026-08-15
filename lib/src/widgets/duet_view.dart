@@ -1,11 +1,10 @@
-﻿import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';
 import 'package:duet/src/core/duet_core.dart';
 import 'package:duet/src/core/duet_provider.dart';
 import 'package:duet/src/widgets/duet_scope.dart';
 
 /// Mixin attached to a [StatefulWidget]'s [State] to manage lifecycle and automatically bind a Duet ViewModel [VM].
-mixin DuetStateMixin<W extends StatefulWidget, VM extends Duet>
-    on State<W> {
+mixin DuetStateMixin<W extends StatefulWidget, VM extends Duet> on State<W> {
   late final VM _duet;
 
   /// Returns the Duet ViewModel instance bound to this widget.
@@ -20,7 +19,8 @@ mixin DuetStateMixin<W extends StatefulWidget, VM extends Duet>
 
   /// Compatibility alias for [bindDuet].
   VM bindViewModel() {
-    throw UnimplementedError('You must override bindDuet() or bindViewModel() in your screen widget.');
+    throw UnimplementedError(
+        'You must override bindDuet() or bindViewModel() in your screen widget.');
   }
 
   /// Wraps the child widget subtree in a [DuetScope].
@@ -34,28 +34,20 @@ mixin DuetStateMixin<W extends StatefulWidget, VM extends Duet>
   @override
   void initState() {
     super.initState();
-    final temp = bindDuet();
-    if (temp.isGlobal) {
-      _duet = getDuet<VM>(bindDuet);
-    } else {
-      _duet = temp;
-    }
+    _duet = resolveBoundDuet(bindDuet());
     _duet.retain();
   }
 
   @override
   void dispose() {
-    _duet.release(() {
-      if (_duet.isGlobal) {
-        unregisterVM(_duet);
-      }
-    });
+    releaseDuet(_duet);
     super.dispose();
   }
 }
 
 /// Backward compatibility alias for [DuetStateMixin].
-typedef ReactiveStateMixin<W extends StatefulWidget, VM extends Duet> = DuetStateMixin<W, VM>;
+typedef ReactiveStateMixin<W extends StatefulWidget, VM extends Duet>
+    = DuetStateMixin<W, VM>;
 
 /// {@template duet_view}
 /// Base class for Screen/View components that automatically binds and scopes a [Duet] ViewModel.
@@ -68,8 +60,15 @@ abstract class DuetView<VM extends Duet> extends StatefulWidget {
 
   /// Compatibility alias for [bindDuet].
   VM bindViewModel() {
-    throw UnimplementedError('You must override bindDuet() or bindViewModel() in your screen widget.');
+    throw UnimplementedError(
+        'You must override bindDuet() or bindViewModel() in your screen widget.');
   }
+
+  /// Called once after the Duet instance has been bound and retained.
+  ///
+  /// Use this hook for initial loading instead of starting asynchronous work in
+  /// the Duet constructor.
+  void onDuetReady(VM duet) {}
 
   /// UI build method receiving both [BuildContext] and the bound [duet] instance.
   Widget build(BuildContext context, VM duet);
@@ -82,6 +81,12 @@ class _DuetViewState<VM extends Duet> extends State<DuetView<VM>>
     with DuetStateMixin<DuetView<VM>, VM> {
   @override
   VM bindDuet() => widget.bindDuet();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.onDuetReady(duet);
+  }
 
   @override
   Widget build(BuildContext context) {

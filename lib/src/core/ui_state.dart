@@ -1,34 +1,49 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 
-/// Base abstract class for defining UI behavior states.
+/// Standard UI behavior states for small and medium Duet features.
 ///
-/// Designed to be subclassed or implemented using Dart 3 sealed class hierarchies
-/// for exhaustive pattern matching (e.g. Loading, Success, Error).
+/// Larger features can still define their own behavior hierarchy and use
+/// `Duet<D, B>` directly.
 @immutable
 abstract class UiState {
   const UiState();
+
+  const factory UiState.idle() = UiIdle;
+  const factory UiState.loading([String? label]) = UiLoading;
+  const factory UiState.success([String? message]) = UiSuccess;
+  const factory UiState.error(String message) = UiError;
 }
 
 /// Default idle UI state.
-class UiIdle extends UiState {
+final class UiIdle extends UiState {
   const UiIdle();
 }
 
 /// Default loading UI state.
-class UiLoading extends UiState {
-  const UiLoading();
+final class UiLoading extends UiState {
+  final String? label;
+
+  const UiLoading([this.label]);
 }
 
 /// Default success UI state.
-class UiSuccess extends UiState {
-  const UiSuccess();
+final class UiSuccess extends UiState {
+  final String? message;
+
+  const UiSuccess([this.message]);
 }
 
 /// Default error UI state with a message payload.
-class UiError extends UiState {
+final class UiError extends UiState {
   final String message;
-  const UiError(this.message);
+  final Object? error;
+  final StackTrace? stackTrace;
+
+  const UiError(this.message, {this.error, this.stackTrace});
 }
+
+/// Preferred name for the built-in behavior type used by [SimpleDuet].
+typedef DuetStatus = UiState;
 
 /// Backward compatibility alias for [UiState].
 typedef ReactiveStateData = UiState;

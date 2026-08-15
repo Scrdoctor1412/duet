@@ -44,16 +44,18 @@ class BenchmarkSummaryCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.2),
+                    color: Colors.green.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.green),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle_outline, color: Colors.green, size: 14),
+                      Icon(Icons.check_circle_outline,
+                          color: Colors.green, size: 14),
                       SizedBox(width: 4),
                       Text(
                         "HEALTHY",
@@ -72,7 +74,10 @@ class BenchmarkSummaryCard extends StatelessWidget {
             DuetBuilder<StressTestData, StressTestUiBehavior>.both(
               builder: (context, data, behavior) {
                 final activeVMs = 1 + data.spawnedSubVMCount;
-                final isRunning = behavior is StressTestUiRunning;
+                final runningTestName = switch (behavior) {
+                  StressTestUiRunning(:final testName) => testName,
+                  _ => null,
+                };
 
                 return Column(
                   children: [
@@ -105,17 +110,19 @@ class BenchmarkSummaryCard extends StatelessWidget {
                               ? "${data.tickerIntervalMs}ms (~${(1000 / data.tickerIntervalMs).round()} FPS)"
                               : "STOPPED",
                           icon: Icons.timer_outlined,
-                          color: data.isTickerRunning ? Colors.purple : Colors.grey,
+                          color: data.isTickerRunning
+                              ? Colors.purple
+                              : Colors.grey,
                         ),
                         const SizedBox(width: 12),
                         _buildMetricTile(
                           context,
                           label: "Current Mode",
-                          value: isRunning
-                              ? (behavior as StressTestUiRunning).testName
-                              : "Idle",
+                          value: runningTestName ?? "Idle",
                           icon: Icons.science_outlined,
-                          color: isRunning ? Colors.teal : Colors.indigo,
+                          color: runningTestName != null
+                              ? Colors.teal
+                              : Colors.indigo,
                         ),
                       ],
                     ),
@@ -140,15 +147,15 @@ class BenchmarkSummaryCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundColor: color.withOpacity(0.2),
+              backgroundColor: color.withValues(alpha: 0.2),
               child: Icon(icon, color: color, size: 18),
             ),
             const SizedBox(width: 10),

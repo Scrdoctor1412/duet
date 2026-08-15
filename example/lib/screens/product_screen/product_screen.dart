@@ -43,7 +43,7 @@ class ProductScreen extends DuetView<ProductViewModel> {
             onPressed: () {
               context.push(MyTestScreen.route);
             },
-            icon: Icon(Icons.text_fields_sharp),
+            icon: const Icon(Icons.text_fields_sharp),
           ),
 
           // Logout Button

@@ -14,6 +14,7 @@ Please choose your preferred language:
 - 🔬 [So sánh Kiến trúc & Hiệu năng](vi/architecture_comparison.md)
 - 📖 [Báo cáo Kỹ thuật Chi tiết](vi/duet_technical_doc.md)
 - 🚀 [Bắt đầu nhanh (Quick Start)](vi/README.md)
+- ✨ [API đơn giản theo cấp độ](vi/simple_api.md)
 
 ---
 
@@ -25,3 +26,4 @@ Please choose your preferred language:
 - 🔬 [Architecture & Performance Comparison](en/architecture_comparison.md)
 - 📖 [Detailed Technical Report](en/duet_technical_doc.md)
 - 🚀 [Quick Start Guide](en/README.md)
+- ✨ [Progressive Simple API](en/simple_api.md)

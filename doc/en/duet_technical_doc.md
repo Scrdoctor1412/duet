@@ -1,8 +1,13 @@
 # 📖 TECHNICAL REPORT: DESIGN & IMPLEMENTATION OF `DUET`
 
 > **Project**: `duet` - Pure Flutter Dual-Notifier State Management & MVVM Architecture (Zero External Dependencies).  
-> **Location**: `docs/en/duet_technical_doc.md`  
+> **Location**: `doc/en/duet_technical_doc.md`
 > **Version**: 3.0
+
+> **Current note:** Exact `DuetScope.of<VM>` lookup uses Flutter's inherited
+> element index. Legacy `<D, B>` lookup retains an ancestor-scan fallback for
+> compatibility, so not every lookup is O(1). New code should prefer
+> `DuetWatch<VM>`.
 
 ---
 
@@ -12,14 +17,14 @@
 2. [Step-by-Step Core Implementation](#2-step-by-step-core-implementation)
    - [Step 1: Standardizing UI State with Sealed Classes (`UiState`)](#step-1-standardizing-ui-state-with-sealed-classes-uistate)
    - [Step 2: Dual ViewModel Engine (`Duet` & `DuetValueNotifier`)](#step-2-dual-viewmodel-engine-duet--duetvaluenotifier)
-   - [Step 3: O(1) Scoping & Dependency Injection (`_AnyDuetScope`, `DuetScope` & `DuetRegistry`)](#step-3-o1-scoping--dependency-injection-_anyduetscope-duetscope--duetregistry)
+   - [Step 3: Scoping & Dependency Injection (`_AnyDuetScope`, `DuetScope` & `DuetRegistry`)](#step-3-o1-scoping--dependency-injection-_anyduetscope-duetscope--duetregistry)
    - [Step 4: Scoped ViewModel Lifecycle Management (`DuetStateMixin` & `DuetView`)](#step-4-scoped-viewmodel-lifecycle-management-duetstatemixin--duetview)
    - [Step 5: One-Shot Side-Effect Event Handling (`DuetListener` & `DuetBehaviorListener`)](#step-5-one-shot-side-effect-event-handling-duetlistener--duetbehaviorlistener)
    - [Step 6: Performance Optimization & Reactive Glitch Prevention (`batch()` & `emitState()`)](#step-6-performance-optimization--reactive-glitch-prevention-batch--emitstate)
    - [Step 7: Synchronized Reactive UI Widgets (`DuetBuilder` & `DuetSelector`)](#step-7-synchronized-reactive-ui-widgets-duetbuilder--duetselector)
 3. [Algorithmic Analysis & Core Mechanics](#3-algorithmic-analysis--core-mechanics)
    - [3.1 Reference Counting & AutoDispose Algorithm](#31-reference-counting--autodispose-algorithm)
-   - [3.2 O(1) Context Lookup via InheritedWidget Marker (`_AnyDuetScope`)](#32-o1-context-lookup-via-inheritedwidget-marker-_anyduetscope)
+   - [3.2 Context Scope Lookup](#32-context-scope-lookup)
    - [3.3 Flutter Engine Layer Optimization](#33-flutter-engine-layer-optimization)
 4. [Detailed Architecture Matrix](#4-detailed-architecture-matrix)
 5. [Code Examples & Production Patterns](#5-code-examples--production-patterns)
@@ -77,16 +82,17 @@ In `duet_core.dart`, `DuetValueNotifier<T>` provides transactional batching capa
 
 ```dart
 class DuetValueNotifier<T> extends ValueNotifier<T> {
-  bool _isBatching = false;
+  int _batchDepth = 0;
   bool _hasPendingNotify = false;
 
   DuetValueNotifier(super.value);
 
-  void beginBatch() => _isBatching = true;
+  void beginBatch() => _batchDepth++;
 
   void endBatch() {
-    _isBatching = false;
-    if (_hasPendingNotify) {
+    if (_batchDepth == 0) return;
+    _batchDepth--;
+    if (_batchDepth == 0 && _hasPendingNotify) {
       _hasPendingNotify = false;
       notifyListeners();
     }
@@ -94,7 +100,7 @@ class DuetValueNotifier<T> extends ValueNotifier<T> {
 
   @override
   void notifyListeners() {
-    if (_isBatching) {
+    if (_batchDepth > 0) {
       _hasPendingNotify = true;
     } else {
       super.notifyListeners();
@@ -124,9 +130,9 @@ stateDiagram-v2
     Disposed --> [*]: unregisterVM()
 ```
 
-### 3.2 O(1) Context Lookup via `_AnyDuetScope`
+### 3.2 Context Scope Lookup
 
-`_AnyDuetScope` acts as a non-generic marker class inherited by `DuetScope<VM>`, permitting direct $O(1)$ context lookups across widget subtrees without runtime type reflection penalties.
+Exact `DuetScope.of<VM>` lookup uses Flutter's inherited-element index. The non-generic marker supports compatibility fallback for legacy data/behavior lookup, which can scan ancestors when an exact typed scope is unavailable.
 
 ---
 
@@ -137,7 +143,7 @@ stateDiagram-v2
 | **External Dependencies** | **0% (100% Native)** | `flutter_bloc` | `flutter_riverpod` | `get` |
 | **Dual State Separation** | Standard `D` & `B` | Manual | Manual (`AsyncValue`) | Manual |
 | **Glitch Prevention (Batching)** | Built-in `emit(data, ui)` | Stream buffering | Provider Ref | None |
-| **Key Collision Risk** | **0% (`Object.hash`)** | N/A | N/A | High tag collisions |
+| **Registry key** | `(Type, key)` record with Map equality | N/A | N/A | User-managed tags |
 | **Developer Experience** | Automatic Scoping | Provider Boilerplate | Consumer Ref | Global Get.find |
 
 ---

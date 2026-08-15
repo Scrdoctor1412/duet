@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:duet/src/core/duet_core.dart';
 
 /// Global observer interface to intercept and log state mutations in debug mode.

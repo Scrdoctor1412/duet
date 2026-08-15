@@ -126,27 +126,36 @@ class _ProfileScreenState extends State<ProfileScreen>
                     const SizedBox(height: 24),
 
                     // Avatar & Email Header
-                    DuetSelector<ProfileViewModel, ({String name, String email})>(
-                      selector: (vm) => (name: vm.data.name, email: vm.data.email),
+                    DuetSelector<ProfileViewModel,
+                        ({String name, String email})>(
+                      selector: (vm) =>
+                          (name: vm.data.name, email: vm.data.email),
                       builder: (context, info) {
                         return Column(
                           children: [
                             CircleAvatar(
                               radius: 50,
-                              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer,
                               child: Text(
-                                info.name.isNotEmpty ? info.name[0].toUpperCase() : 'U',
+                                info.name.isNotEmpty
+                                    ? info.name[0].toUpperCase()
+                                    : 'U',
                                 style: TextStyle(
                                   fontSize: 40,
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer,
                                 ),
                               ),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               info.email,
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                              style: TextStyle(
+                                  color: Colors.grey.shade600, fontSize: 14),
                             ),
                           ],
                         );
@@ -173,11 +182,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                               ),
                             ),
                             const Divider(height: 24),
-
                             DuetBuilder<ProfileData, ProfileUiBehavior>.both(
                               builder: (context, data, behavior) {
                                 final isLoading = behavior is ProfileUiLoading;
-                                final isFieldEnabled = data.isEditing && !isLoading;
+                                final isFieldEnabled =
+                                    data.isEditing && !isLoading;
                                 return Column(
                                   children: [
                                     // H   ?t  n
@@ -224,7 +233,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                               ? null
                                               : () => duet.saveProfile(
                                                     name: _nameController.text,
-                                                    phone: _phoneController.text,
+                                                    phone:
+                                                        _phoneController.text,
                                                     bio: _bioController.text,
                                                   ),
                                           icon: const Icon(Icons.save),
@@ -252,8 +262,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                         builder: (context, enabled) {
                           return SwitchListTile(
                             value: enabled,
-                            title: const Text('Nh   n th  ng b  o    ng d   ng'),
-                            subtitle: const Text('B   t/t   t th  ng b  o      y      n thi   t b   '),
+                            title:
+                                const Text('Nh   n th  ng b  o    ng d   ng'),
+                            subtitle: const Text(
+                                'B   t/t   t th  ng b  o      y      n thi   t b   '),
                             secondary: const Icon(Icons.notifications_active),
                             onChanged: duet.toggleNotifications,
                           );

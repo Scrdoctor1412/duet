@@ -41,15 +41,18 @@ class _HighFreqCounterSectionState extends State<HighFreqCounterSection> {
             const SizedBox(height: 6),
             Text(
               "Ki   m th   ?kh   ?n  ng ch   u t   i th  ng b  o tr   ng th  i t   n su   t cao li  n t   c (16ms per tick) m   kh  ng l  m lag UI thread.",
-              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
+              style:
+                  theme.textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
             ),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.deepOrange.withOpacity(0.05),
+                color: Colors.deepOrange.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.deepOrange.withOpacity(0.2)),
+                border: Border.all(
+                  color: Colors.deepOrange.withValues(alpha: 0.2),
+                ),
               ),
               child: DuetSelector<StressTestViewModel, int>(
                 selector: (vm) => vm.data.tickerCount,
@@ -65,7 +68,8 @@ class _HighFreqCounterSectionState extends State<HighFreqCounterSection> {
                             children: [
                               const Text(
                                 "Ticker Value",
-                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                               Text(
                                 "$count",
@@ -82,7 +86,8 @@ class _HighFreqCounterSectionState extends State<HighFreqCounterSection> {
                             children: [
                               const Text(
                                 "Selector Rebuilds",
-                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(
@@ -90,7 +95,8 @@ class _HighFreqCounterSectionState extends State<HighFreqCounterSection> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.deepOrange.withOpacity(0.2),
+                                  color:
+                                      Colors.deepOrange.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -131,7 +137,9 @@ class _HighFreqCounterSectionState extends State<HighFreqCounterSection> {
                               : Icons.play_arrow_rounded,
                         ),
                         label: Text(
-                          data.isTickerRunning ? "STOP TICKER" : "START 60 FPS TICKER",
+                          data.isTickerRunning
+                              ? "STOP TICKER"
+                              : "START 60 FPS TICKER",
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -142,7 +150,8 @@ class _HighFreqCounterSectionState extends State<HighFreqCounterSection> {
                       onSelected: vm.setTickerInterval,
                       tooltip: "Ch   n T   n S   ?Ticker",
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade400),
                           borderRadius: BorderRadius.circular(8),
@@ -155,9 +164,12 @@ class _HighFreqCounterSectionState extends State<HighFreqCounterSection> {
                         ),
                       ),
                       itemBuilder: (context) => const [
-                        PopupMenuItem(value: 16, child: Text("16 ms (~60 FPS)")),
-                        PopupMenuItem(value: 33, child: Text("33 ms (~30 FPS)")),
-                        PopupMenuItem(value: 100, child: Text("100 ms (~10 FPS)")),
+                        PopupMenuItem(
+                            value: 16, child: Text("16 ms (~60 FPS)")),
+                        PopupMenuItem(
+                            value: 33, child: Text("33 ms (~30 FPS)")),
+                        PopupMenuItem(
+                            value: 100, child: Text("100 ms (~10 FPS)")),
                         PopupMenuItem(value: 500, child: Text("500 ms (Slow)")),
                       ],
                     ),

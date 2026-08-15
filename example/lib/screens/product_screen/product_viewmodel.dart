@@ -35,18 +35,19 @@ class ProductViewModel extends Duet<ProductData, ProductUiBehavior> {
       id: 'p3',
       name: 'AirPods Max 2',
       price: 13990000,
-      description: 'Ch   ng    n ch   ?     ng      nh cao, c   ng s   c USB-C.',
+      description:
+          'Ch   ng    n ch   ?     ng      nh cao, c   ng s   c USB-C.',
       icon: '    ',
       rating: 4.7,
     ),
-    const ProductItem(
-      id: 'p4',
-      name: 'Apple Watch Ultra 2',
-      price: 21990000,
-      description: 'V   ?Titan   en 49mm, pin s   ?d   ng 36 gi   ?',
-      icon: '   ?,
-      rating: 4.9,
-    ),
+    // const ProductItem(
+    //   id: 'p4',
+    //   name: 'Apple Watch Ultra 2',
+    //   price: 21990000,
+    //   description: 'V   ?Titan   en 49mm, pin s   ?d   ng 36 gi   ?',
+    //   icon: '   ?,
+    //   rating: 4.9,
+    // ),
     const ProductItem(
       id: 'p5',
       name: 'iPad Pro M4',

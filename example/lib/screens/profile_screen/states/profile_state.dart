@@ -31,8 +31,7 @@ class ProfileData {
       email: email ?? this.email,
       phone: phone ?? this.phone,
       bio: bio ?? this.bio,
-      notificationsEnabled:
-          notificationsEnabled ?? this.notificationsEnabled,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       isEditing: isEditing ?? this.isEditing,
     );
   }

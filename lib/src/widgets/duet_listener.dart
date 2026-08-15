@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:duet/src/core/duet_core.dart';
 import 'package:duet/src/core/duet_provider.dart';
@@ -44,17 +44,24 @@ class _DuetListenerState<VM extends Duet, E>
     final newVM = widget.viewModel ?? DuetScope.of<VM>(context);
 
     if (_effectiveVM != newVM) {
-      if (_effectiveVM != null) {
-        _subscription?.cancel();
-        _effectiveVM!.release(() {
-          unregisterVM(_effectiveVM!);
-        });
-      }
-
-      _effectiveVM = newVM;
-      _effectiveVM!.retain();
-      _subscribe();
+      _detach();
+      _attach(newVM);
     }
+  }
+
+  @override
+  void didUpdateWidget(covariant DuetListener<VM, E> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.viewModel != widget.viewModel) {
+      _detach();
+      _attach(widget.viewModel ?? DuetScope.of<VM>(context));
+    }
+  }
+
+  void _attach(VM viewModel) {
+    _effectiveVM = viewModel;
+    _effectiveVM!.retain();
+    _subscribe();
   }
 
   void _subscribe() {
@@ -69,14 +76,18 @@ class _DuetListenerState<VM extends Duet, E>
     });
   }
 
+  void _detach() {
+    _subscription?.cancel();
+    _subscription = null;
+    if (_effectiveVM != null) {
+      releaseDuet(_effectiveVM!);
+      _effectiveVM = null;
+    }
+  }
+
   @override
   void dispose() {
-    _subscription?.cancel();
-    if (_effectiveVM != null) {
-      _effectiveVM!.release(() {
-        unregisterVM(_effectiveVM!);
-      });
-    }
+    _detach();
     super.dispose();
   }
 
@@ -130,17 +141,32 @@ class _DuetBehaviorListenerState<D, B>
     final newVM = DuetScope.find<D, B>(context, explicitVM: widget.viewModel);
 
     if (_effectiveVM != newVM) {
-      if (_effectiveVM != null) {
-        _effectiveVM!.behaviorNotifier.removeListener(_onBehaviorChanged);
-        _effectiveVM!.release(() {
-          unregisterVM(_effectiveVM!);
-        });
-      }
+      _detach();
+      _attach(newVM);
+    }
+  }
 
-      _effectiveVM = newVM;
-      _effectiveVM!.retain();
-      _previousBehavior = _effectiveVM!.behaviorState;
-      _effectiveVM!.behaviorNotifier.addListener(_onBehaviorChanged);
+  @override
+  void didUpdateWidget(covariant DuetBehaviorListener<D, B> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.viewModel != widget.viewModel) {
+      _detach();
+      _attach(DuetScope.find<D, B>(context, explicitVM: widget.viewModel));
+    }
+  }
+
+  void _attach(Duet<D, B> viewModel) {
+    _effectiveVM = viewModel;
+    _effectiveVM!.retain();
+    _previousBehavior = _effectiveVM!.behaviorState;
+    _effectiveVM!.behaviorNotifier.addListener(_onBehaviorChanged);
+  }
+
+  void _detach() {
+    if (_effectiveVM != null) {
+      _effectiveVM!.behaviorNotifier.removeListener(_onBehaviorChanged);
+      releaseDuet(_effectiveVM!);
+      _effectiveVM = null;
     }
   }
 
@@ -156,12 +182,7 @@ class _DuetBehaviorListenerState<D, B>
 
   @override
   void dispose() {
-    if (_effectiveVM != null) {
-      _effectiveVM!.behaviorNotifier.removeListener(_onBehaviorChanged);
-      _effectiveVM!.release(() {
-        unregisterVM(_effectiveVM!);
-      });
-    }
+    _detach();
     super.dispose();
   }
 

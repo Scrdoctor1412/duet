@@ -1,26 +1,28 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:meta/meta.dart';
 import 'package:duet/src/core/duet_observer.dart';
 
 /// Customized [ValueNotifier] that supports transaction batching.
 ///
 /// Prevents multiple intermediate notifications when updating multiple state fields simultaneously.
 class DuetValueNotifier<T> extends ValueNotifier<T> {
-  bool _isBatching = false;
+  int _batchDepth = 0;
   bool _hasPendingNotify = false;
 
   DuetValueNotifier(super.value);
 
   /// Begins a notification batch transaction.
   void beginBatch() {
-    _isBatching = true;
+    _batchDepth++;
   }
 
   /// Ends the batch transaction and triggers a single notification if any update occurred.
   void endBatch() {
-    _isBatching = false;
-    if (_hasPendingNotify) {
+    assert(_batchDepth > 0, 'endBatch() called without beginBatch().');
+    if (_batchDepth == 0) return;
+
+    _batchDepth--;
+    if (_batchDepth == 0 && _hasPendingNotify) {
       _hasPendingNotify = false;
       notifyListeners();
     }
@@ -28,7 +30,7 @@ class DuetValueNotifier<T> extends ValueNotifier<T> {
 
   @override
   void notifyListeners() {
-    if (_isBatching) {
+    if (_batchDepth > 0) {
       _hasPendingNotify = true;
     } else {
       super.notifyListeners();
@@ -43,6 +45,17 @@ class DuetValueNotifier<T> extends ValueNotifier<T> {
 
 /// Backward compatibility alias for [DuetValueNotifier].
 typedef ReactiveValueNotifier<T> = DuetValueNotifier<T>;
+
+/// An explicitly present value used by [Duet.emitPatch].
+///
+/// The wrapper distinguishes an omitted channel from a channel being set to
+/// `null` when the Duet uses nullable data or UI types.
+@immutable
+final class DuetChange<T> {
+  final T value;
+
+  const DuetChange(this.value);
+}
 
 /// {@template duet}
 /// Base abstract class managing state for all ViewModels / Controllers under the Duet architecture.
@@ -72,6 +85,9 @@ abstract class Duet<D, B> {
 
   /// Flag marking whether this instance has been disposed.
   bool _isDisposed = false;
+
+  /// Whether an owner has requested disposal after remaining consumers detach.
+  bool _disposeWhenUnreferenced = false;
 
   /// Returns `true` if this instance has been disposed from memory.
   bool get isDisposed => _isDisposed;
@@ -125,7 +141,8 @@ abstract class Duet<D, B> {
   @protected
   void emitData(D newData) {
     if (_isDisposed) return;
-    dataNotifier.value = newData;
+    _reportState(data: newData);
+    _setData(newData);
   }
 
   /// Safely updates business data [D] using a transformation function [transform].
@@ -146,6 +163,7 @@ abstract class Duet<D, B> {
   @protected
   void notifyDataChanged() {
     if (_isDisposed) return;
+    _reportState(data: dataState);
     dataNotifier.forceNotify();
   }
 
@@ -153,7 +171,8 @@ abstract class Duet<D, B> {
   @protected
   void emitBehavior(B newBehavior) {
     if (_isDisposed) return;
-    behaviorNotifier.value = newBehavior;
+    _reportState(ui: newBehavior);
+    _setBehavior(newBehavior);
   }
 
   /// Concise helper alias to emit UI behavior state [newUi].
@@ -166,19 +185,59 @@ abstract class Duet<D, B> {
     if (_isDisposed) return;
     if (data == null && ui == null) return;
 
-    if (kDebugMode && DuetState.observer != null) {
-      DuetState.observer!.onStateEmitted(this, data: data, ui: ui);
-    }
+    _reportState(data: data, ui: ui);
 
     batch(() {
-      if (data != null) emitData(data);
-      if (ui != null) emitBehavior(ui);
+      if (data != null) _setData(data);
+      if (ui != null) _setBehavior(ui);
     });
   }
 
   /// Most concise helper alias for [emitState].
   @protected
   void emit({D? data, B? ui}) => emitState(data: data, ui: ui);
+
+  /// Atomically updates only the explicitly supplied channels.
+  ///
+  /// Unlike [emit], [DuetChange] can carry `null` as a real value:
+  ///
+  /// ```dart
+  /// emitPatch(data: const DuetChange(null));
+  /// ```
+  @protected
+  void emitPatch({DuetChange<D>? data, DuetChange<B>? ui}) {
+    if (_isDisposed || (data == null && ui == null)) return;
+
+    _reportState(data: data?.value, ui: ui?.value);
+    batch(() {
+      if (data != null) _setData(data.value);
+      if (ui != null) _setBehavior(ui.value);
+    });
+  }
+
+  /// Emits both values atomically without treating `null` as an omitted value.
+  ///
+  /// This is useful for nullable generic state and for framework helpers such
+  /// as `SimpleDuet.runTask`.
+  @protected
+  void emitValues({required D data, required B ui}) {
+    if (_isDisposed) return;
+    _reportState(data: data, ui: ui);
+    batch(() {
+      _setData(data);
+      _setBehavior(ui);
+    });
+  }
+
+  void _setData(D value) => dataNotifier.value = value;
+
+  void _setBehavior(B value) => behaviorNotifier.value = value;
+
+  void _reportState({Object? data, Object? ui}) {
+    if (kDebugMode && DuetState.observer != null) {
+      DuetState.observer!.onStateEmitted(this, data: data, ui: ui);
+    }
+  }
 
   /// Internal controller for one-shot side-effect events (Toasts, Navigation, Dialogs).
   final _eventController = StreamController<Object>.broadcast();
@@ -206,8 +265,7 @@ abstract class Duet<D, B> {
   @mustCallSuper
   void invalidate() {
     if (_isDisposed) return;
-    emitData(initialData);
-    emitBehavior(initialBehavior);
+    emitValues(data: initialData, ui: initialBehavior);
   }
 
   /// Increments reference count when a widget attaches to this instance.
@@ -219,9 +277,19 @@ abstract class Duet<D, B> {
 
   /// Decrements reference count and disposes if [_refCount] reaches zero and [autoDispose] is true.
   @internal
-  void release(void Function() onDisposeRegistry) {
+  void release(
+    void Function() onDisposeRegistry, {
+    bool disposeWhenUnreferenced = false,
+  }) {
+    if (_isDisposed) return;
+    if (disposeWhenUnreferenced) {
+      _disposeWhenUnreferenced = true;
+    }
+    assert(_refCount > 0, 'release() called without a matching retain().');
+    if (_refCount == 0) return;
+
     _refCount--;
-    if (_refCount <= 0 && autoDispose) {
+    if (_refCount <= 0 && (autoDispose || _disposeWhenUnreferenced)) {
       dispose();
       onDisposeRegistry();
     }
@@ -232,6 +300,7 @@ abstract class Duet<D, B> {
   void dispose() {
     if (_isDisposed) return;
     _isDisposed = true;
+    _refCount = 0;
     dataNotifier.dispose();
     behaviorNotifier.dispose();
     _eventController.close();

@@ -16,39 +16,28 @@ dependencies:
 import 'package:flutter/material.dart';
 import 'package:duet/duet.dart';
 
-// 1. Define State
-class CounterData {
-  final int count;
-  const CounterData({required this.count});
-}
-
-// 2. Define Duet ViewModel
-class CounterViewModel extends Duet<CounterData, UiState> {
-  CounterViewModel()
-      : super(
-          initialData: const CounterData(count: 0),
-          initialBehavior: const UiIdle(),
-        );
+// Small and medium screens only need one class.
+class CounterDuet extends SimpleDuet<int> {
+  CounterDuet() : super(initialData: 0);
 
   void increment() {
-    emitData(CounterData(count: data.count + 1));
+    emitData(data + 1);
   }
 }
 
-// 3. Define DuetView
-class CounterScreen extends DuetView<CounterViewModel> {
+class CounterScreen extends DuetView<CounterDuet> {
   const CounterScreen({super.key});
 
   @override
-  CounterViewModel bindDuet() => CounterViewModel();
+  CounterDuet bindDuet() => CounterDuet();
 
   @override
-  Widget build(BuildContext context, CounterViewModel duet) {
+  Widget build(BuildContext context, CounterDuet duet) {
     return Scaffold(
       appBar: AppBar(title: const Text('Duet Counter')),
       body: Center(
-        child: DuetBuilder<CounterData, UiState>(
-          builder: (context, data) => Text('Count: ${data.count}'),
+        child: duet.watchData(
+          builder: (context, count) => Text('Count: $count'),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -64,9 +53,33 @@ class CounterScreen extends DuetView<CounterViewModel> {
 
 ## 📖 Documentation
 
-For in-depth guides, technical architecture, and best practices, check the `docs/` folder:
-- [Overview](docs/overview.md)
-- [Core Concepts](docs/core_concepts.md)
-- [Best Practices](docs/best_practices.md)
-- [Architecture Comparison](docs/architecture_comparison.md)
-- [Technical Document](docs/duet_technical_doc.md)
+For in-depth guides, technical architecture, and best practices, check the `doc/` folder:
+- [Documentation Hub](doc/README.md)
+- [Progressive API (Vietnamese)](doc/vi/simple_api.md)
+- [Overview (English)](doc/en/overview.md)
+- [Core Concepts (English)](doc/en/core_concepts.md)
+
+## Shared state without `BuildContext`
+
+Keep local state local, and register only state that genuinely belongs to
+multiple screens:
+
+```dart
+abstract final class AppDuets {
+  static CartDuet get cart => Duets.shared<CartDuet>(CartDuet.new);
+}
+```
+
+Every access returns the same lazy instance:
+
+```dart
+final cart = AppDuets.cart; // creates once
+final sameCart = AppDuets.cart; // returns the existing instance
+```
+
+The registry owns shared state between routes. Dispose it explicitly at an app
+boundary such as logout:
+
+```dart
+Duets.reset<CartDuet>();
+```

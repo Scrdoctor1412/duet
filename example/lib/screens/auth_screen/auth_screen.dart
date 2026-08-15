@@ -51,7 +51,10 @@ class _AuthScreenState extends State<AuthScreen>
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.6),
+                  Theme.of(context)
+                      .colorScheme
+                      .primaryContainer
+                      .withValues(alpha: 0.6),
                   Theme.of(context).colorScheme.surface,
                 ],
               ),

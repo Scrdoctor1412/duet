@@ -38,6 +38,33 @@ class GlobalTestViewModel extends Duet<CounterData, UiState> {
         );
 }
 
+class NullableDuet extends Duet<String?, int?> {
+  NullableDuet() : super(initialData: 'data', initialBehavior: 1);
+
+  void clearData() => emitPatch(data: const DuetChange(null));
+
+  void clearUi() => emitPatch(ui: const DuetChange(null));
+
+  void restoreBoth() => emitPatch(
+        data: const DuetChange('restored'),
+        ui: const DuetChange(2),
+      );
+}
+
+class CollidingKey {
+  final String value;
+
+  const CollidingKey(this.value);
+
+  @override
+  int get hashCode => 1;
+
+  @override
+  bool operator ==(Object other) {
+    return other is CollidingKey && other.value == value;
+  }
+}
+
 void main() {
   tearDown(() {
     DuetRegistry.resetAll();
@@ -69,6 +96,35 @@ void main() {
     expect(globalVm.isGlobal, isTrue);
   });
 
+  test('registry keeps unequal keys separate even when hashes collide', () {
+    final first = getDuet(
+      () => TestViewModel(key: const CollidingKey('first')),
+      key: const CollidingKey('first'),
+    );
+    final second = getDuet(
+      () => TestViewModel(key: const CollidingKey('second')),
+      key: const CollidingKey('second'),
+    );
+
+    expect(identical(first, second), isFalse);
+  });
+
+  test('emitPatch distinguishes omitted channels from nullable values', () {
+    final duet = NullableDuet();
+
+    duet.clearData();
+    expect(duet.data, isNull);
+    expect(duet.ui, 1);
+
+    duet.clearUi();
+    expect(duet.data, isNull);
+    expect(duet.ui, isNull);
+
+    duet.restoreBoth();
+    expect(duet.data, 'restored');
+    expect(duet.ui, 2);
+  });
+
   testWidgets('context.duet creates ViewModel using autoKey',
       (WidgetTester tester) async {
     TestViewModel? retrievedVm;
@@ -78,7 +134,9 @@ void main() {
         home: Scaffold(
           body: Builder(
             builder: (context) {
-              retrievedVm = context.duet(() => TestViewModel(key: 'context_key'), key: 'context_key');
+              retrievedVm = context.duet(
+                  () => TestViewModel(key: 'context_key'),
+                  key: 'context_key');
               return Text('Count: ${retrievedVm!.data.count}');
             },
           ),
