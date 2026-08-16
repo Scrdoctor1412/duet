@@ -12,7 +12,7 @@ class UserGreetingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vm = authVM ?? getDuet(() => AuthViewModel());
+    final vm = authVM ?? Duets.shared<AuthViewModel>(AuthViewModel.new);
     //      Selective Listening: Rebuilds ONLY when auth name changes
     return DuetSelector<AuthViewModel, String>(
       viewModel: vm,

@@ -18,8 +18,8 @@ Hầu hết các thư viện quản lý state hiện nay đều rơi vào một 
 │                          DUET ARCHITECTURE                             │
 ├────────────────────────────────────────────────────────────────────────┤
 │ 1. DUAL-NOTIFIER STATE    : Tách biệt DataState & UIBehaviorState      │
-│ 2. HYBRID SCOPING        : Không Context (getVM) hoặc Cây Widget (DuetScope)│
-│ 3. PARAMETRIC KEY        : Phân biệt Instance bằng ID/Object (key: id) │
+│ 2. OWNERSHIP RÕ RÀNG     : State cục bộ hoặc dùng chung có chủ đích     │
+│ 3. FLEXIBLE SCOPING      : DuetView, DuetScope hoặc Duets.shared       │
 │ 4. REFERENCE COUNTING    : Tự động giải phóng RAM (autoDispose)        │
 │ 5. DART 3 SEALED CLASS   : An toàn Compile-time với Pattern Matching   │
 └────────────────────────────────────────────────────────────────────────┘
@@ -31,16 +31,18 @@ Hầu hết các thư viện quản lý state hiện nay đều rơi vào một 
 - `behaviorNotifier`: Quản lý trạng thái UI `B` (Ví dụ: `UiIdle`, `UiLoading`, `UiError`).
 *Lợi ích:* Tránh mất dữ liệu cũ trên giao diện khi người dùng thao tác Reload (No UI Flickering).
 
-### 🔹 Trụ cột 2: Hybrid Scoping (Tự do lựa chọn có/không Context)
-- **Không cần `BuildContext`:** Dùng `getDuet(() => MyViewModel())` để lấy ViewModel/Duet ở bất kỳ đâu (Service, Repository, UI).
-- **Phân vùng bằng `BuildContext`:** Dùng `DuetScope` và `context.duetOf<MyViewModel>()` khi muốn phân vùng theo Cây Widget.
+### 🔹 Trụ cột 2: Ownership rõ ràng
+- **State cục bộ:** Tạo trong `DuetView.bindDuet` hoặc cung cấp bằng `DuetScope`.
+- **State dùng chung:** Chỉ dùng `Duets.shared` cho state thực sự thuộc nhiều màn hình hoặc một flow.
 
-### 🔹 Trụ cột 3: Parametric Scoping (`key: Object?`)
-Cho phép tạo nhiều Instance độc lập của cùng một kiểu ViewModel trên cùng một màn hình mà **không cần gõ chuỗi Magic String**:
+### 🔹 Trụ cột 3: Flexible Scoping
+`key:` cho phép tạo nhiều shared instance có chủ đích cùng kiểu:
 ```dart
-final vmA = getDuet(() => ProductItemViewModel(productA), key: productA.id);
-final vmB = getDuet(() => ProductItemViewModel(productB), key: productB.id);
+final first = Duets.shared<AccountDuet>(() => AccountDuet('a'), key: 'a');
+final second = Duets.shared<AccountDuet>(() => AccountDuet('b'), key: 'b');
 ```
+
+Các API legacy `getDuet`/`getVM` đã deprecated và sẽ bị xóa ở phiên bản 2.0.0.
 
 ### 🔹 Trụ cột 4: Reference Counting AutoDispose
 Tự động đếm số lượng `DuetBuilder` hoặc `DuetSelector` đang theo dõi ViewModel (`_refCount`). Khi người dùng thoát màn hình (`_refCount == 0`), ViewModel sẽ tự động giải phóng khỏi RAM mà không cần dọn dẹp thủ công.
@@ -55,10 +57,10 @@ Tích hợp với từ khóa `sealed` và `factory` của Dart 3. Ép buộc tr�
 | Tính năng | `duet` | GetX | Riverpod | BLoC |
 | :--- | :--- | :--- | :--- | :--- |
 | **Bản chất hạ tầng** | 100% Native (`ValueNotifier`) | Khung sinh thái đóng | Dependency Graph | Stream State Machine |
-| **Không cần Context** | ✅ Có (`getVM()`) | ✅ Có (`Get.find()`) | ❌ Cần `WidgetRef` | ❌ Cần `context.read()` |
+| **State dùng chung rõ ràng** | ✅ Có (`Duets.shared`) | ✅ Có (`Get.find()`) | ✅ Provider container | ✅ Repository/provider |
 | **Loại bỏ Event Boilerplate** | ✅ Có (Gọi hàm async trực tiếp) | ✅ Có | ✅ Có | ❌ Phải tạo Event Class |
 | **Tự động AutoDispose** | ✅ Có (Reference Counting) | 🟡 Bán tự động | ✅ Có (`.autoDispose`) | ✅ Tự động theo cây |
 | **Chống giật UI khi Reload** | ✅ Tự nhiên nhất | ❌ Khó xử lý | ✅ Có (`previousData`) | ❌ Dễ trắng màn hình |
 | **Lắng nghe từng Field (Selector)** | ✅ Có (`DuetSelector`) | ✅ Có (`Obx`) | ✅ Có (`select`) | ✅ Có (`BlocSelector`) |
-| **Tự do Scoping** | 🏆 Rất cao (Global/Key/Scope) | 🟡 Dùng Tag String | 🟢 Cao | 🔴 Gắn chặt Cây Widget |
+| **Scoping** | Local scope hoặc keyed shared registry | Tag String | Provider scope | Tree/provider scope |
 

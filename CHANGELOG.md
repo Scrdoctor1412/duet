@@ -1,3 +1,11 @@
+# Next
+
+- Deprecated the legacy `getDuet`, `getVM`, `context.duet`, and
+  `context.getVM` service-locator APIs. Use `Duets.shared` for intentionally
+  shared state and `DuetView`/`DuetScope` for local state. The deprecated APIs
+  remain functional until 2.0.0.
+- Migrated the example and documentation to the explicit ownership APIs.
+
 # 1.1.0
 
 - Added `SimpleDuet<D>` with built-in `UiState` lifecycle and async helpers.

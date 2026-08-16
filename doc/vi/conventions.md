@@ -16,10 +16,10 @@
 
 #### ❌ Không nên:
 ```dart
-// Tự gọi context.getVM(...) thủ công ở nhiều nơi trong build()
+// Không tạo hoặc tra cứu Duet cục bộ thủ công trong build().
 class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
-    final vm = context.getVM(() => ProfileViewModel(), key: this);
+    final vm = ProfileViewModel();
     ...
   }
 }
@@ -96,11 +96,11 @@ emit(
 
 | Hành động | Do (Nên làm) | Don't (Tránh làm) |
 | :--- | :--- | :--- |
-| **Tạo Màn hình mới** | Kế thừa `DuetView<MyVM>` | Tạo `StatelessWidget` rồi tự gọi `getVM` thủ công |
+| **Tạo Màn hình mới** | Kế thừa `DuetView<MyVM>` | Tạo Duet cục bộ trong `build()` |
 | **Dùng Widget phản ứng** | Viết `DuetBuilder<Data, Behavior>()` | Điền `viewModel: vm` dư thừa vào Widget con |
 | **Cập nhật State kép** | Dùng `emit(data: ..., ui: ...)` | Gọi `emitData()` rồi gọi `emitUi()` ở 2 dòng riêng |
 | **Sự kiện Toast/SnackBar** | Dùng `DuetBehaviorListener` | Tự `addListener` thủ công trong `initState` |
-| **Truy cập VM ở Widget con** | Dùng `context.vm<MyVM>()` | Khởi tạo lại `getVM` làm tạo mới ViewModel |
+| **Truy cập VM ở Widget con** | Dùng `context.vm<MyVM>()` | Khởi tạo một ViewModel mới trong widget con |
 
 ---
 

@@ -15,7 +15,7 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vm = cartVM ?? getVM(() => CartViewModel());
+    final vm = cartVM ?? Duets.shared<CartViewModel>(CartViewModel.new);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),

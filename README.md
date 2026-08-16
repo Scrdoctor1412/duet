@@ -265,6 +265,25 @@ Duets.resetAll();
 Optional `key:` values allow several intentional shared instances of the same
 Duet type.
 
+### Migrating from the legacy service locator
+
+`getDuet`, `getVM`, `context.duet`, and `context.getVM` are deprecated and will
+be removed in 2.0.0. Replace intentional global or cross-screen lookups with
+`Duets.shared`:
+
+```dart
+// Before
+final cart = getDuet(CartDuet.new);
+
+// After
+final cart = Duets.shared<CartDuet>(CartDuet.new);
+```
+
+For screen-local state, create the instance in `DuetView.bindDuet` or pass an
+existing instance through `DuetScope`; do not replace local state with a shared
+registry entry. New code should not override `isGlobal` when it uses
+`Duets.shared`, because the registry itself owns the shared lifetime.
+
 ## Advanced: custom UI workflows
 
 Use the full `Duet<D, B>` API when the UI state is part of the feature domain,

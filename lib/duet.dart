@@ -1,4 +1,4 @@
-/// Duet - Pure Flutter Dual-Notifier State Management & Service Locator.
+/// Duet - Pure Flutter dual-notifier state management.
 ///
 /// A lightweight, zero-dependency state management solution for Flutter applications,
 /// separating business data state from transient UI behavior state.

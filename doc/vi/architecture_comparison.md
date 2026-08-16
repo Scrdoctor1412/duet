@@ -72,4 +72,4 @@ Khi xây dựng ứng dụng Tài chính / Ngân hàng quy mô lớn (Team 50-10
 ### 🔴 Những điểm cần lưu ý khi áp dụng cho Ngân hàng Enterprise:
 1. **Thiếu Global Audit Observer:** BLoC có `BlocObserver` tự động ghi log 100% lịch sử giao dịch/event của user khi gặp sự cố tra soát. Với `duet`, bạn cần tự viết thêm một lớp Middleware Logger nếu cần audit log toàn cục.
 2. **Không ép buộc Event Class:** BLoC ép dev phải tạo class `TransferEvent`, ngăn ngừa việc dev gọi lén hàm nghiệp vụ. Với `duet`, cần quy định rõ ràng coding convention trong team.
-3. **Quy định dùng `DuetScope`:** Với dự án lớn, nên khuyến khích team dùng `DuetScope` & `context.vm` để đảm bảo tính đóng gói theo nhánh cây Widget thay vì lạm dụng `getVM()` tự do.
+3. **Ownership rõ ràng:** Dùng `DuetScope`/`context.vm` cho state cục bộ và `Duets.shared` cho state dùng chung có chủ đích; không dùng các helper service locator legacy.

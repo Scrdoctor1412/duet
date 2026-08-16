@@ -8,7 +8,7 @@
 
 ### `duet` vs Riverpod
 - **Riverpod**: Operates as a global compile-time dependency graph. Uses `WidgetRef` in consumer widgets.
-- **`duet`**: Combines context-free `getDuet()` lookup with native `InheritedWidget` scoping (`DuetScope`).
+- **`duet`**: Uses native `InheritedWidget` scoping (`DuetScope`) for local state and an explicit `Duets.shared()` registry for cross-screen state.
 
 ---
 

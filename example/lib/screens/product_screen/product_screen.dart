@@ -105,7 +105,7 @@ class ProductScreen extends DuetView<ProductViewModel> {
   }
 
   void _confirmLogout(BuildContext context) {
-    final authVM = getDuet(() => AuthViewModel());
+    final authVM = Duets.shared<AuthViewModel>(AuthViewModel.new);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(

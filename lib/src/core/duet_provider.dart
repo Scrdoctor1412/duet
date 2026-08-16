@@ -37,9 +37,10 @@ class _DuetRegistryImpl {
 
       assert(
         key != null,
-        'WARNING: Retrieving Duet [${T.toString()}] via getDuet without providing a `key` '
-        'while `isGlobal` is false. This may lead to multiple screens accidentally sharing the same instance! '
-        'Consider using `getDuet(() => ${T.toString()}(), key: this)` or `context.duet(...)` or overriding `bool get isGlobal => true`.',
+        'DEPRECATED DUET REGISTRY USAGE: Retrieving [${T.toString()}] without '
+        'a `key` while `isGlobal` is false can accidentally share local state. '
+        'Use Duets.shared() for intentional shared state, or create local state '
+        'with DuetView/DuetScope.',
       );
       _instances[registryKey] = instance;
     }
@@ -135,14 +136,26 @@ class _DuetRegistryImpl {
 
 enum _DuetRegistrySpace { shared }
 
-/// Global helper function to retrieve or lazily create a Duet instance of type [T].
+/// Legacy helper that retrieves or lazily creates a Duet instance by type and
+/// optional key.
+///
+/// Use [Duets.shared] for intentionally shared state. For screen-local state,
+/// create the Duet in `DuetView.bindDuet` or provide it with `DuetScope`.
+@Deprecated(
+  'Use Duets.shared() for shared state, or DuetView/DuetScope for local state. '
+  'This API will be removed in 2.0.0.',
+)
 T getDuet<T extends Duet>(T Function() creator, {Object? key}) {
   return _DuetRegistryImpl.get<T>(creator, key: key);
 }
 
 /// Backward compatibility alias for [getDuet].
+@Deprecated(
+  'Use Duets.shared() for shared state, or DuetView/DuetScope for local state. '
+  'This API will be removed in 2.0.0.',
+)
 T getVM<T extends Duet>(T Function() creator, {Object? key}) {
-  return getDuet<T>(creator, key: key);
+  return _DuetRegistryImpl.get<T>(creator, key: key);
 }
 
 /// Intentional service locator for Duet state shared across screens or flows.
@@ -175,17 +188,26 @@ abstract final class Duets {
   static void resetAll() => _DuetRegistryImpl.resetAll();
 }
 
-/// Extension providing [BuildContext] access to lazily create and locate Duet instances with automatic route keys.
+/// Legacy [BuildContext] helpers for the old keyed registry API.
 extension DuetContextX on BuildContext {
   /// Retrieves or lazily creates a Duet instance of type [T].
+  @Deprecated(
+    'Create local state in DuetView.bindDuet or provide it with DuetScope. '
+    'Use Duets.shared() for shared state. This API will be removed in 2.0.0.',
+  )
   T duet<T extends Duet>(T Function() creator, {Object? key}) {
     final autoKey = key ?? ModalRoute.of(this) ?? this;
     return _DuetRegistryImpl.get<T>(creator, key: autoKey);
   }
 
   /// Backward compatibility alias for [duet].
+  @Deprecated(
+    'Create local state in DuetView.bindDuet or provide it with DuetScope. '
+    'Use Duets.shared() for shared state. This API will be removed in 2.0.0.',
+  )
   T getVM<T extends Duet>(T Function() creator, {Object? key}) {
-    return duet<T>(creator, key: key);
+    final autoKey = key ?? ModalRoute.of(this) ?? this;
+    return _DuetRegistryImpl.get<T>(creator, key: autoKey);
   }
 }
 
@@ -196,7 +218,7 @@ void unregisterVM(Duet vm) {
 
 /// Resolves a View-bound instance while preserving global singleton semantics.
 ///
-/// Unlike calling `getDuet(bindDuet)`, this never evaluates `bindDuet` twice.
+/// Unlike the legacy registry lookup, this never evaluates `bindDuet` twice.
 @internal
 T resolveBoundDuet<T extends Duet>(T candidate) {
   return _DuetRegistryImpl.resolveBound(candidate);

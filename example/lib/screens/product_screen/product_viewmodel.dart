@@ -8,12 +8,6 @@ class ProductViewModel extends Duet<ProductData, ProductUiBehavior> {
           initialBehavior: const ProductUiIdle(),
         );
 
-  @override
-  bool get autoDispose => false;
-
-  @override
-  bool get isGlobal => true;
-
   static final List<ProductItem> _initialProducts = [
     const ProductItem(
       id: 'p1',

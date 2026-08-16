@@ -13,7 +13,7 @@ class CartBadgeIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vm = cartVM ?? getDuet(() => CartViewModel());
+    final vm = cartVM ?? Duets.shared<CartViewModel>(CartViewModel.new);
     //      Selective Listening: Rebuilds ONLY when total cart count changes
     return DuetSelector<CartViewModel, int>(
       viewModel: vm,
