@@ -1,5 +1,5 @@
 name: duet
-description: A lightweight, zero-dependency dual-notifier state management & service locator library for Flutter.
+description: A lightweight, zero-dependency dual-notifier state management library for Flutter.
 version: 1.1.0
 homepage: https://github.com/Scrdoctor1412/duet
 repository: https://github.com/Scrdoctor1412/duet

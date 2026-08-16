@@ -1,6 +1,6 @@
 # 🚀 Duet Documentation (English)
 
-Welcome to the official documentation for **`duet`** — a lightweight, zero-dependency dual-notifier state management and service locator package for Flutter Native.
+Welcome to the official documentation for **`duet`** — a lightweight, zero-dependency dual-notifier state management package for Flutter Native.
 
 ---
 
@@ -13,7 +13,7 @@ Welcome to the official documentation for **`duet`** — a lightweight, zero-dep
 2. 💡 **[Core Concepts & Guide](core_concepts.md)**
    - `Duet<D, B>` (Separating Data State & UI Behavior State)
    - `UiState` & Sealed Classes (Dart 3 Pattern Matching)
-   - `getDuet()` (Lazy Service Locator with Parametric `key:`)
+   - `Duets.shared()` (Intentional shared state with optional keys)
    - `DuetScope` & `context.duetOf` (Widget Tree Scoping)
    - `DuetBuilder` & `DuetSelector` (Selective Rebuilding)
    - `autoDispose` & Reference Counting

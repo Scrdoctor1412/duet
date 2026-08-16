@@ -20,7 +20,7 @@ class _AuthScreenState extends State<AuthScreen>
   bool _obscurePassword = true;
 
   @override
-  AuthViewModel bindDuet() => AuthViewModel();
+  AuthViewModel bindDuet() => Duets.shared<AuthViewModel>(AuthViewModel.new);
 
   @override
   void dispose() {

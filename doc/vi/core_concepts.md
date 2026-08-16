@@ -54,7 +54,7 @@ typedef BaseViewModel<D, B> = Duet<D, B>;
 ### Phương thức & Annotation quan trọng:
 * `@protected updateData(D Function(D current) transform)`: Cập nhật dữ liệu nghiệp vụ một cách an toàn. Tự động kiểm tra `assert` trong chế độ Debug để cảnh báo nếu dev mutate biến trực tiếp thay vì tạo bản sao mới.
 * `@protected notifyDataChanged()`: Ép buộc phát lại thông báo tới UI khi dữ liệu bị mutate trực tiếp (in-place mutation).
-* `bool get isGlobal => false;`: Đánh dấu ViewModel có phải Singleton toàn cục hay không. Mặc định là `false` (ViewModel cục bộ). Các ViewModel toàn cục như `AuthViewModel`, `CartViewModel` ghi đè trả về `true` để cho phép dùng `getVM()` không cần `key`.
+* `bool get isGlobal => false;`: Cơ chế tương thích với registry cũ. Code mới dùng `Duets.shared()` không cần và không nên override getter này.
 * `@protected emitData(D newData)`: Cho phép class con phát trực tiếp đối tượng dữ liệu mới.
 * `@mustCallSuper invalidate()`: Reset state về `initialData` và `initialBehavior`. Khi subclass override phải gọi `super.invalidate()`.
 * `bool get autoDispose => true;`: Ghi đè getter này và trả về `false` nếu muốn ViewModel sống vĩnh viễn trong RAM (KeepAlive).
@@ -97,35 +97,29 @@ return switch (viewModel.behaviorState) {
 
 ---
 
-## 3. `getVM()` & Context Auto-Keying
+## 3. State dùng chung có chủ đích với `Duets.shared()`
 
-`getVM()` là hàm trợ giúp định vị dịch vụ (Lazy Service Locator).
+Chỉ dùng `Duets.shared<T>()` khi state thực sự thuộc nhiều màn hình hoặc một
+luồng ứng dụng. Registry giữ một quyền sở hữu cho tới khi gọi
+`Duets.reset<T>()` hoặc `Duets.resetAll()`.
 
-### Cách 1: Tự động quản lý Key theo State màn hình (`key: this`) - KHUYÊN DÙNG
-Trong `StatefulWidget`, truyền `key: this` để đảm bảo mỗi khi một màn hình mới được push lên, một ViewModel riêng biệt sẽ được khởi tạo dựa trên địa chỉ bộ nhớ RAM của `State` đó:
 ```dart
-class _MyScreenState extends State<MyScreen> {
-  late final viewModel = getVM(() => MyViewModel(), key: this);
-}
+final auth = Duets.shared<AuthViewModel>(AuthViewModel.new);
+final cart = Duets.shared<CartViewModel>(CartViewModel.new);
 ```
 
-### Cách 2: Tự động lấy Key qua BuildContext (`context.getVM(...)`)
-Sử dụng extension `context.getVM()` giúp tự động lấy tên Route/URI hiện tại làm Key nếu bạn không truyền Key thủ công:
+Có thể truyền `key:` khi cần nhiều shared instance cùng kiểu:
+
 ```dart
-final viewModel = context.getVM(() => ProductDetailViewModel());
+final account = Duets.shared<AccountDuet>(
+  () => AccountDuet(accountId),
+  key: accountId,
+);
 ```
 
-### Cách 3: ViewModel Toàn cục (`isGlobal = true`)
-Dành cho các ViewModel dùng chung toàn app (Auth, Theme, Cart):
-```dart
-class AuthViewModel extends Duet<UserData, UiState> {
-  @override
-  bool get isGlobal => true;
-}
-
-// Khởi tạo mà không cần truyền key ở bất kỳ đâu
-final authVm = getVM(() => AuthViewModel());
-```
+Với state cục bộ, hãy tạo instance trong `DuetView.bindDuet` hoặc truyền qua
+`DuetScope`. `getDuet`, `getVM`, `context.duet` và `context.getVM` đã deprecated
+và sẽ bị xóa ở phiên bản 2.0.0.
 
 ---
 
@@ -136,7 +130,7 @@ Khi bạn muốn phân vùng ViewModel theo cây Widget mà không cần truyề
 ### Khai báo ở Widget Cha:
 ```dart
 DuetScope(
-  viewModel: getVM(() => ProductItemViewModel(productA), key: productA.id),
+  viewModel: ProductItemViewModel(productA),
   child: const ProductCardWidget(),
 )
 ```

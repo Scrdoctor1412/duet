@@ -11,7 +11,8 @@ import 'package:duet_example/screens/splash_screen/splash_screen.dart';
 import 'package:duet_example/screens/stress_test_screen/stress_test_screen.dart';
 
 abstract class AppRouter {
-  static final AuthViewModel _authVM = getVM(() => AuthViewModel());
+  static final AuthViewModel _authVM =
+      Duets.shared<AuthViewModel>(AuthViewModel.new);
 
   static final GoRouter router = GoRouter(
     initialLocation: '/splash',

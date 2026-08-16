@@ -1,6 +1,6 @@
 # 🚀 Duet Documentation
 
-Chào mừng bạn đến với tài liệu chính thức của **`duet`** — một thư viện quản lý trạng thái (State Management) và định vị dịch vụ (Service Locator) siêu nhẹ, 100% thuần Flutter Native, không phụ thuộc vào bất kỳ package bên thứ ba nào.
+Chào mừng bạn đến với tài liệu chính thức của **`duet`** — một thư viện quản lý trạng thái siêu nhẹ, 100% thuần Flutter Native, không phụ thuộc vào package bên thứ ba.
 
 ---
 
@@ -13,7 +13,7 @@ Chào mừng bạn đến với tài liệu chính thức của **`duet`** — m
 2. 💡 **[Các Khái niệm Cốt lõi & Hướng dẫn Sử dụng](core_concepts.md)**
    * `Duet<D, B>` (hay `ViewModel`, `DuetViewModel`, `DuetController` — Tách biệt Data State & UI Behavior State)
    * `UiState` & `Sealed Class` (Dart 3 Pattern Matching & Redirecting Factories)
-   * `getVM()` (Lazy Service Locator & Parametric Scoping với `key:`)
+   * `Duets.shared()` (State dùng chung có chủ đích, hỗ trợ `key:`)
    * `DuetScope` & `context.vm` (Phân vùng theo Cây Widget)
    * `DuetBuilder` (Khoanh vùng Rebuild mượt mà, Tự động quản lý AutoDispose)
    * `DuetSelector` (Lắng nghe tối ưu duy nhất 1 field/thuộc tính)

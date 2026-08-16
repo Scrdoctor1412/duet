@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:duet/duet.dart';
@@ -90,13 +92,13 @@ void main() {
     expect(notifyCount, equals(1));
   });
 
-  test('isGlobal allow keyless getDuet access', () {
+  test('legacy getDuet keeps isGlobal compatibility', () {
     final globalVm = getDuet(() => GlobalTestViewModel());
     expect(globalVm.data.count, equals(99));
     expect(globalVm.isGlobal, isTrue);
   });
 
-  test('registry keeps unequal keys separate even when hashes collide', () {
+  test('legacy registry keeps unequal keys separate when hashes collide', () {
     final first = getDuet(
       () => TestViewModel(key: const CollidingKey('first')),
       key: const CollidingKey('first'),
@@ -125,7 +127,7 @@ void main() {
     expect(duet.ui, 2);
   });
 
-  testWidgets('context.duet creates ViewModel using autoKey',
+  testWidgets('legacy context.duet creates ViewModel using autoKey',
       (WidgetTester tester) async {
     TestViewModel? retrievedVm;
 

@@ -11,9 +11,6 @@ class CartViewModel extends Duet<CartData, CartUiBehavior> {
   @override
   bool get autoDispose => false;
 
-  @override
-  bool get isGlobal => true;
-
   void addItem({
     required String id,
     required String title,

@@ -11,7 +11,7 @@ class CartScreen extends DuetView<CartViewModel> {
   const CartScreen({super.key});
 
   @override
-  CartViewModel bindDuet() => CartViewModel();
+  CartViewModel bindDuet() => Duets.shared<CartViewModel>(CartViewModel.new);
 
   @override
   Widget build(BuildContext context, CartViewModel duet) {

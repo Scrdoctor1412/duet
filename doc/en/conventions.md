@@ -66,8 +66,8 @@ emit(
 
 | Action | Do | Don't |
 | :--- | :--- | :--- |
-| **New Screen** | Extend `DuetView<MyVM>` | Create `StatelessWidget` and call `getDuet` manually |
+| **New Screen** | Extend `DuetView<MyVM>` | Create a local Duet inside `build()` |
 | **Reactive Widget** | Use `DuetBuilder<Data, Behavior>()` | Pass redundant `viewModel: duet` in child widgets |
 | **Dual State Update** | Use `emit(data: ..., ui: ...)` | Call `emitData()` and `emitBehavior()` separately |
 | **One-shot Events** | Use `DuetBehaviorListener` | Add manual listeners in `initState` |
-| **Child VM Lookup** | Use `context.duetOf<MyVM>()` | Re-instantiate `getDuet` creating duplicate VMs |
+| **Child VM Lookup** | Use `context.duetOf<MyVM>()` | Instantiate a duplicate ViewModel in the child |

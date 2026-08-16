@@ -1,6 +1,6 @@
 # 📚 Duet Documentation Hub
 
-Welcome to the official documentation for **`duet`** — a lightweight, zero-dependency dual-notifier state management & service locator package for Flutter.
+Welcome to the official documentation for **`duet`** — a lightweight, zero-dependency dual-notifier state management package for Flutter.
 
 Please choose your preferred language:
 

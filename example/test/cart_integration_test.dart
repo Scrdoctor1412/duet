@@ -6,13 +6,13 @@ import 'package:duet_example/screens/cart_screen/cart_screen_viewmodel.dart';
 
 void main() {
   tearDown(() {
-    DuetRegistry.resetAll();
+    Duets.resetAll();
   });
 
   testWidgets(
       'Global CartViewModel preserves items added from ProductScreen when CartScreen opens',
       (WidgetTester tester) async {
-    final cartVM = getDuet(() => CartViewModel());
+    final cartVM = Duets.shared<CartViewModel>(CartViewModel.new);
     cartVM.addItem(
       id: 'p1',
       title: 'Ao thun Flutter',
@@ -30,5 +30,6 @@ void main() {
 
     await tester.pumpAndSettle();
     expect(find.byType(CartScreen), findsOneWidget);
+    expect(find.text('Ao thun Flutter'), findsOneWidget);
   });
 }

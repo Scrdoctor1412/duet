@@ -144,28 +144,21 @@ typedef BaseViewModel<D, B> = Duet<D, B>;
 
 ---
 
-### Bước 3: Hệ thống Scope & Dependency Injection (`_AnyDuetScope`, `DuetScope` & `DuetRegistry`)
+### Bước 3: Scope cục bộ và shared registry (`DuetScope` & `Duets`)
 
-Tại [duet_provider.dart](file:///d:/flutter_project/testing_things/lib/duet/src/core/duet_provider.dart), chúng ta xây dựng `DuetRegistry` làm Service Locator toàn cục chỉ dành riêng cho các **Global Singleton Duet** (`isGlobal => true`):
+`DuetScope` cung cấp state cục bộ theo cây widget. Với state thực sự thuộc
+nhiều màn hình, `Duets.shared` tạo một instance lazy và registry giữ một quyền
+sở hữu cho tới khi gọi `reset`:
 
 ```dart
-class DuetRegistry {
-  static final Map<Object, Duet> _instances = {};
+final cart = Duets.shared<CartDuet>(CartDuet.new);
 
-  static T get<T extends Duet>(T Function() creator, {Object? key}) {
-    final registryKey = key != null ? (T, key) : T;
-
-    if (!_instances.containsKey(registryKey) || _instances[registryKey]!.isDisposed) {
-      _instances[registryKey] = creator();
-    }
-    return _instances[registryKey] as T;
-  }
-}
-
-// ⚡ Global helper chính thức
-T getDuet<T extends Duet>(T Function() creator, {Object? key}) =>
-    DuetRegistry.get<T>(creator, key: key);
+// Giải phóng tại boundary của ứng dụng, ví dụ logout.
+Duets.reset<CartDuet>();
 ```
+
+Các helper service locator cũ (`getDuet`, `getVM` và phiên bản trên context)
+đã deprecated và chỉ còn để tương thích tới phiên bản 2.0.0.
 
 Đồng thời tại [duet_scope.dart](file:///d:/flutter_project/testing_things/lib/duet/src/widgets/duet_scope.dart), ta tạo marker class `_AnyDuetScope` làm base `InheritedWidget` phi generic cho phép truy vấn **O(1)** trực tiếp qua `BuildContext`:
 

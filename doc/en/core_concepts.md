@@ -22,17 +22,26 @@ class CartViewModel extends Duet<CartData, CartUiBehavior> {
 
 ---
 
-## 2. Service Locator (`getDuet`) & Keyed Scoping
+## 2. Explicit shared state (`Duets.shared`)
 
-`getDuet<T>()` acts as a lazy service locator:
+Use `Duets.shared<T>()` only when state intentionally belongs to several
+screens or an application flow. The registry owns one reference until
+`Duets.reset<T>()` or `Duets.resetAll()` is called:
 
 ```dart
-// Global Singleton
-final globalAuth = getDuet(() => AuthViewModel());
+final auth = Duets.shared<AuthViewModel>(AuthViewModel.new);
+final cart = Duets.shared<CartViewModel>(CartViewModel.new);
 
-// Parametric instance bound to an ID
-final itemVM = getDuet(() => ProductItemViewModel(item), key: item.id);
+// Optional keys create independent intentional shared instances.
+final account = Duets.shared<AccountDuet>(
+  () => AccountDuet(accountId),
+  key: accountId,
+);
 ```
+
+For local state, instantiate the Duet in `DuetView.bindDuet` or provide it
+through `DuetScope`. The legacy `getDuet`, `getVM`, `context.duet`, and
+`context.getVM` APIs are deprecated and will be removed in 2.0.0.
 
 ---
 

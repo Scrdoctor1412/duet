@@ -20,9 +20,6 @@ class AuthViewModel extends Duet<AuthData, AuthUiBehavior> {
   @override
   bool get autoDispose => false;
 
-  @override
-  bool get isGlobal => true;
-
   /// Check stored session on startup
   Future<void> checkAuthSession() async {
     final session = await _storageService.getSession();

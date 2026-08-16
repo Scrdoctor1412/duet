@@ -75,7 +75,8 @@ class ProductData with _$ProductData {
 - Giúp RAM tự động giải phóng ngay khi người dùng thoát màn hình.
 
 ### Khi nào nên tắt AutoDispose (`autoDispose = false`)?
-- Các ViewModel mang tính toàn cục như `AuthViewModel` (Thông tin đăng nhập), `ThemeViewModel` (Cấu hình giao diện), `CartViewModel` (Giỏ hàng).
+- State dùng chung như `AuthViewModel`, `ThemeViewModel` hoặc `CartViewModel`.
+- Đăng ký các instance này bằng `Duets.shared()` để registry sở hữu vòng đời rõ ràng.
 
 ```dart
 class AuthViewModel extends Duet<UserData, UiState> {
@@ -91,20 +92,19 @@ class AuthViewModel extends Duet<UserData, UiState> {
 
 ## 4. Hướng dẫn Unit Test cho `duet`
 
-Vì `getVM()` lưu trữ registry trong RAM, khi viết Unit Test bạn cần gọi `DuetRegistry.clearAll()` trong hàm `tearDown()` để tránh rò rỉ state giữa các test case:
+Duet cục bộ có thể test trực tiếp như object Dart thông thường. Với test dùng
+`Duets.shared()`, gọi `Duets.resetAll()` trong `tearDown()` để tránh state dùng
+chung rò rỉ giữa các test case:
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:testing_things/duet/duet.dart';
 
 void main() {
-  tearDown(() {
-    // 💡 Xóa sạch Registry sau mỗi test case
-    DuetRegistry.clearAll();
-  });
+  tearDown(Duets.resetAll);
 
   test('ProductViewModel fetchProducts emits loading and success', () async {
-    final viewModel = getVM(() => ProductViewModel());
+    final viewModel = ProductViewModel();
 
     expect(viewModel.behaviorState, isA<ProductUiIdle>());
 
@@ -114,6 +114,7 @@ void main() {
     await future;
     expect(viewModel.behaviorState, isA<ProductUiSuccess>());
     expect(viewModel.dataState.products.isNotEmpty, true);
+    viewModel.dispose();
   });
 }
 ```
