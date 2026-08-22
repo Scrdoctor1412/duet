@@ -23,12 +23,16 @@ Welcome to the official documentation for **`duet`** — a lightweight, zero-dep
    - Memory Management & Unit Testing
 4. 🔬 **[Architecture & Performance Comparison](architecture_comparison.md)**
    - Internal Mechanics Comparison
-   - CPU, RAM, and GC Benchmarks
+   - Runtime and lifecycle trade-offs
    - Enterprise & Fintech App Suitability
-5. 📜 **[Team Conventions](conventions.md)**
+5. 📈 **[Performance Measurement](performance.md)**
+   - Profile-mode measurement on target hardware
+   - Build, raster, P95, worst-frame, and selector metrics
+   - Warm-up and repeated-run guidance
+6. 📜 **[Team Conventions](conventions.md)**
    - 4 Core Coding Rules
    - Do's & Don'ts Checklist
-6. 📖 **[Technical Report](duet_technical_doc.md)**
+7. 📖 **[Technical Report](duet_technical_doc.md)**
    - Step-by-step design, Reference Counting algorithm, and Glitch Prevention.
 
 ---

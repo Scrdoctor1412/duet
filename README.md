@@ -194,6 +194,23 @@ DuetSelector<CartDuet, int>(
 Both widgets resolve the nearest matching `DuetScope`. You can also pass
 `viewModel:` explicitly.
 
+### What a state update costs
+
+Duet deliberately uses Flutter's synchronous `ValueNotifier` dispatch. Updating
+one channel visits that channel's listeners in O(N). Every `DuetSelector` on the
+channel evaluates its selector, but calls `setState` only when its selected value
+changes. Keep selectors cheap and place reactive widgets close to the UI that
+actually changes.
+
+`batch()` and `emit(data: ..., ui: ...)` reduce notification dispatch and
+selector evaluation for synchronous groups of updates. They do not remove state
+construction work, and notification count is not widget-build count: Flutter
+may coalesce repeated `setState` calls before the next frame.
+
+Validate performance in profile mode on target devices. See the
+[performance guide](doc/en/performance.md) for the measurement protocol and how
+to interpret build, raster, P95, worst-frame, and selector metrics.
+
 ## One-shot effects
 
 Snackbars, dialogs, and navigation are events rather than durable state. Emit
@@ -378,6 +395,7 @@ tearDown(Duets.resetAll);
 - [Progressive API](doc/en/simple_api.md)
 - [Core concepts](doc/en/core_concepts.md)
 - [Best practices](doc/en/best_practices.md)
+- [Performance measurement](doc/en/performance.md)
 - [Architecture and internals](doc/en/duet_technical_doc.md)
 - [Example application](example/)
 

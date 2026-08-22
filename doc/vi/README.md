@@ -25,14 +25,18 @@ Chào mừng bạn đến với tài liệu chính thức của **`duet`** — m
    * Quản lý bộ nhớ RAM & Hướng dẫn Unit Test
 4. 🔬 **[So sánh Chuyên sâu & Đánh giá Hiệu năng](architecture_comparison.md)**
    * So sánh cơ chế vận hành bên dưới (Internal Working Mechanics)
-   * Phân tích hiệu năng CPU, RAM, GC, và Render Tree
+   * Phân tích trade-off CPU, RAM, GC, và Render Tree
    * Đánh giá mức độ phù hợp cho App Ngân hàng & Fintech Enterprise
-5. 📜 **[Quy ước Lập trình cho Team (Team Conventions)](conventions.md)**
+5. 📈 **[Đo lường Hiệu năng](performance.md)**
+   * Chạy bằng profile mode trên thiết bị mục tiêu
+   * Đọc Average, P95, Worst, Janky Frames và selector instrumentation
+   * Warm-up và lặp lại phép đo để tránh kết luận từ một lần chạy
+6. 📜 **[Quy ước Lập trình cho Team (Team Conventions)](conventions.md)**
    * 4 Quy tắc cốt lõi giúp Dev mới nắm vững dự án trong 2 phút
    * Bảng Checklist Do's & Don'ts chuẩn hóa mã nguồn
-6. 📖 **[Báo cáo Kỹ thuật Từng bước Chi tiết (Technical Step-by-Step Doc)](duet_technical_doc.md)**
+7. 📖 **[Báo cáo Kỹ thuật Từng bước Chi tiết (Technical Step-by-Step Doc)](duet_technical_doc.md)**
    * Ghi lại thiết kế Reference Counting, registry key dạng record và cơ chế batching với `emit()`.
-7. ✨ **[API đơn giản theo cấp độ](simple_api.md)**
+8. ✨ **[API đơn giản theo cấp độ](simple_api.md)**
    * `SimpleDuet<D>` cho màn hình nhỏ và vừa
    * `DuetWatch<VM>` chỉ cần khai báo một kiểu ViewModel
    * `runTask()` và `runData()` chuẩn hóa tác vụ bất đồng bộ
@@ -44,7 +48,7 @@ Chào mừng bạn đến với tài liệu chính thức của **`duet`** — m
 ### Bước 1: Khai báo State với Sealed Class (Dart 3)
 ```dart
 import 'package:flutter/foundation.dart';
-import 'package:testing_things/duet/duet.dart';
+import 'package:duet/duet.dart';
 
 @immutable
 sealed class ProductUiBehavior {
@@ -73,7 +77,7 @@ class ProductData {
 
 ### Bước 2: Tạo ViewModel / Duet
 ```dart
-import 'package:testing_things/duet/duet.dart';
+import 'package:duet/duet.dart';
 
 class ProductViewModel extends Duet<ProductData, ProductUiBehavior> {
   ProductViewModel()
@@ -101,7 +105,7 @@ class ProductViewModel extends Duet<ProductData, ProductUiBehavior> {
 ### Bước 3: Xây dựng UI An toàn & Ngắn gọn
 ```dart
 import 'package:flutter/material.dart';
-import 'package:testing_things/duet/duet.dart';
+import 'package:duet/duet.dart';
 
 class ProductScreen extends DuetView<ProductViewModel> {
   const ProductScreen({super.key});

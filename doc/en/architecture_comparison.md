@@ -1,34 +1,69 @@
-# 🔬 Architecture & Performance Comparison
+# Architecture and Performance Comparison
 
-## 1. Deep Mechanics Comparison
+This document compares Duet's architectural characteristics with Provider,
+Riverpod, BLoC/Cubit, and GetX. It is not an absolute speed ranking. Real results
+must be measured with the same widget tree, workload, Flutter SDK, and hardware.
 
-### `duet` vs BLoC / Cubit
-- **BLoC**: Relies on `StreamController` and event transformers. Requires separate Event classes and BlocProviders.
-- **`duet`**: Built on lightweight Flutter `ValueNotifier` primitives. Methods are invoked directly as standard async Dart methods without event classes.
+## Duet mechanics
 
-### `duet` vs Riverpod
-- **Riverpod**: Operates as a global compile-time dependency graph. Uses `WidgetRef` in consumer widgets.
-- **`duet`**: Uses native `InheritedWidget` scoping (`DuetScope`) for local state and an explicit `Duets.shared()` registry for cross-screen state.
+Each `Duet<D, B>` owns two independent `DuetValueNotifier` instances:
 
----
+- `dataNotifier` holds durable business data;
+- `behaviorNotifier` holds transient UI state;
+- a broadcast event stream carries one-shot effects;
+- reference counting manages the lifetime of widget-consumed instances.
 
-## 2. Performance & Benchmark Analysis
+When one channel changes, `ValueNotifier` synchronously dispatches to that
+channel's listeners in O(N listeners). `DuetBuilder` and `DuetWatch` call
+`setState` for notifications from their selected channels. `DuetSelector`
+evaluates its selector on each notification but calls `setState` only when the
+selected value changes.
 
-These are architectural characteristics, not universal benchmark results.
-Measure the actual application workload on its target devices and Flutter SDK.
+Exact typed lookup through `DuetScope.of<VM>` uses Flutter's inherited-element
+index. Pair-based `<D, B>` lookup retains an ancestor fallback for compatibility.
+Intentional shared state uses a registry keyed by type and an optional key.
 
-| Metric | `duet` | BLoC | Riverpod | GetX |
-| :--- | :--- | :--- | :--- | :--- |
-| **Listener dispatch** | Synchronous, O(N listeners) | Stream/subscription dependent | Provider-graph dependent | Rx-subscription dependent |
-| **Primary lookup** | O(1) HashMap or exact typed scope; legacy fallback scans ancestors | Inherited context | Provider container/graph | Global HashMap |
-| **Base machinery** | Two notifiers and one broadcast event stream per Duet | Stream/state machinery | Provider nodes | Rx/proxy machinery |
-| **Selective rebuild** | `DuetSelector` / `DuetWatch` | `BlocSelector` | `.select()` | `Obx` |
+## Characteristic comparison
 
----
+| Concern | Duet | Provider | Riverpod | BLoC/Cubit | GetX |
+| --- | --- | --- | --- | --- | --- |
+| Reactive core | Two `ValueNotifier`s | Commonly `ChangeNotifier`/`Listenable` | Provider dependency graph | State stream/subscription | Rx or explicit update |
+| Update granularity | Data, UI, or selected value | Provider/selected value | Provider/selected dependency | State or selected value | Rx dependency or update ID |
+| Lookup | Typed scope or explicit registry | Inherited provider | Provider container | `BlocProvider` | Global dependency registry |
+| Async composition | Direct Dart methods and `SimpleDuet` helpers | Application-defined | Async provider primitives | Event/state pipeline | Controllers/workers |
+| Lifecycle | Scope + reference counting | Provider ownership | Container + auto-dispose policies | Provider ownership | Binding/smart-management policies |
+| Base machinery per unit | 2 notifiers + event stream | Depends on provider type | Provider nodes/dependencies | Bloc/Cubit + state stream | Rx/controller machinery |
+| Selective rebuild | `DuetSelector` | `Selector`/`context.select` | `.select()` | `BlocSelector`/`buildWhen` | `Obx`/IDs |
 
-## 3. Enterprise & Fintech Suitability
+These choices have different trade-offs. Duet prioritizes a small, synchronous,
+traceable engine. Riverpod emphasizes dependency composition; BLoC emphasizes
+event pipelines and governance; Provider stays close to Flutter primitives;
+GetX emphasizes concise integrated APIs. The table alone cannot establish which
+application is faster.
 
-`duet` is uniquely suited for enterprise applications (Banking, E-commerce, Fintech) due to:
-1. **Small dependency surface**: Duet depends only on the Flutter SDK. This reduces, but does not eliminate, application supply-chain and upgrade risk.
-2. **Dual-Notifier Reliability**: Prevents data loss and screen flickering during banking transaction reloads.
-3. **Parametric Key Isolation**: Isolates user session states safely using object keys.
+## Batching and widget builds
+
+`batch()` collapses pending work to one notification per changed channel. It
+reduces listener dispatch and selector evaluation but does not eliminate state
+objects constructed inside the batch.
+
+Notification count is not widget-build count. Flutter may coalesce repeated
+synchronous `setState` calls before the next frame. A benchmark that only counts
+`notifyListeners()` cannot claim the same reduction in widget builds or jank.
+
+See [Measuring Duet Performance](performance.md) to measure dispatch, selectors,
+and frame timing separately.
+
+## Large-team considerations
+
+- Duet depends only on Flutter SDK. This keeps its dependency surface small but
+  does not remove supply-chain risk from the full application.
+- `DuetObserver` and `DuetLogger` observe state and effects in debug mode. A
+  production audit trail still needs application-owned transport, redaction,
+  persistence, and security.
+- Duet does not require an event class for every intent. Large teams should
+  standardize public intent methods and coding conventions.
+- Use `DuetView`/`DuetScope` for local ownership and `Duets.shared` only for
+  intentional cross-screen state. Avoid legacy service-locator APIs in new code.
+- Split state with different update frequencies or lifetimes into smaller Duets
+  instead of one application-wide object.

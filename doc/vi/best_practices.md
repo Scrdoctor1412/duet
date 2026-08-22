@@ -35,18 +35,21 @@ class ProductViewModel extends Duet<ProductData, ProductUiBehavior> {
 ## 2. Áp dụng Tính bất biến (Immutability) & Kết hợp `freezed`
 
 ### Tại sao phải dùng Immutable State?
-`ValueNotifier` so sánh sự thay đổi bằng toán tử `==` (so sánh địa chỉ vùng nhớ RAM). 
+`ValueNotifier` so sánh giá trị cũ và mới bằng toán tử `==`. Với class không
+override `==`, kết quả thường tương đương so sánh identity; với `freezed` hoặc
+class có value equality, hai object khác nhau nhưng bằng nhau vẫn không phát
+notification.
 
 Nếu bạn sửa trực tiếp danh sách cũ:
 ```dart
-// ❌ SAI: Sửa trực tiếp mảng cũ làm địa chỉ RAM không đổi -> ValueNotifier BỎ QUA KHÔNG VẼ LẠI UI!
+// ❌ SAI: Mutate state cũ rồi gán lại cùng giá trị -> có thể không notification.
 dataState.products.add("New Item");
 emitData(dataState); 
 ```
 
 Bạn bắt buộc phải tạo một đối tượng MỚI:
 ```dart
-// ✅ ĐÚNG: Tạo mảng mới -> Địa chỉ RAM thay đổi -> ValueNotifier KÍCH HOẠT REBUILD UI!
+// ✅ ĐÚNG: Tạo state immutable mới với nội dung đã cập nhật.
 emitData(ProductData(products: [...dataState.products, "New Item"]));
 ```
 
@@ -64,11 +67,28 @@ class ProductData with _$ProductData {
   }) = _ProductData;
 }
 ```
-*Lợi ích:* `freezed` tự động sinh ra hàm `copyWith()`, tự động so sánh sâu (Deep Equality) và bảo đảm tính Immutability 100%.
+*Lợi ích:* `freezed` sinh `copyWith()` và value equality. Lưu ý rằng equality
+trên collection lớn cũng có chi phí; không nên deep-compare dữ liệu lớn trong
+selector nếu chưa đo.
 
 ---
 
-## 3. Quản lý Bộ nhớ & Tắt AutoDispose khi cần (KeepAlive)
+## 3. Selector và batching
+
+- Mỗi notification khiến mọi `DuetSelector` trên channel tương ứng chạy lại
+  hàm `selector`.
+- Chỉ selector có kết quả thay đổi mới gọi `setState()`.
+- Selector nên là phép đọc O(1); tránh sort, filter hoặc parse trong selector.
+- `batch()` giảm notification và selector evaluation, nhưng không loại bỏ chi
+  phí tạo các state trung gian.
+- Nhiều lần `setState()` đồng bộ có thể được Flutter gộp vào cùng một frame, vì
+  vậy số notification không được gọi là số widget rebuild.
+
+Để đánh giá jank, chạy profile mode theo [hướng dẫn hiệu năng](performance.md).
+
+---
+
+## 4. Quản lý Bộ nhớ & Tắt AutoDispose khi cần (KeepAlive)
 
 ### Khi nào nên dùng `autoDispose` (Mặc định = `true`)?
 - Tất cả các màn hình chi tiết, màn hình form nhập liệu, màn hình popup/dialog ngắn hạn.
@@ -90,7 +110,7 @@ class AuthViewModel extends Duet<UserData, UiState> {
 
 ---
 
-## 4. Hướng dẫn Unit Test cho `duet`
+## 5. Hướng dẫn Unit Test cho `duet`
 
 Duet cục bộ có thể test trực tiếp như object Dart thông thường. Với test dùng
 `Duets.shared()`, gọi `Duets.resetAll()` trong `tearDown()` để tránh state dùng
@@ -98,7 +118,7 @@ chung rò rỉ giữa các test case:
 
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:testing_things/duet/duet.dart';
+import 'package:duet/duet.dart';
 
 void main() {
   tearDown(Duets.resetAll);

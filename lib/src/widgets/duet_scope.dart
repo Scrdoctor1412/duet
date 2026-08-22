@@ -93,7 +93,7 @@ class DuetScope<VM extends Duet> extends _AnyDuetScope {
 
   @override
   bool updateShouldNotify(DuetScope<VM> oldWidget) =>
-      viewModel != oldWidget.viewModel;
+      !identical(viewModel, oldWidget.viewModel);
 }
 
 /// Extension providing convenient [BuildContext] access: `context.duetOf<MyDuet>()` or `context.vm<MyViewModel>()`.

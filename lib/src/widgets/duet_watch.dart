@@ -64,7 +64,7 @@ class _DuetWatchState<VM extends Duet> extends State<DuetWatch<VM>> {
   @override
   void didUpdateWidget(covariant DuetWatch<VM> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.viewModel != widget.viewModel) {
+    if (!identical(oldWidget.viewModel, widget.viewModel)) {
       _syncViewModel(widget.viewModel ?? DuetScope.of<VM>(context));
     } else if (oldWidget.target != widget.target) {
       _unsubscribe();

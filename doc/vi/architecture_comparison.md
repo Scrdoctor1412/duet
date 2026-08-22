@@ -1,75 +1,68 @@
-# 🔬 In-depth Architecture & Performance Comparison
+# So sánh Kiến trúc và Hiệu năng
 
-Tài liệu này phân tích chi tiết cơ chế vận hành bên dưới (Internal Working Mechanics) và so sánh hiệu năng giữa `duet` với **GetX**, **Riverpod**, và **BLoC**.
+Tài liệu này so sánh đặc tính kiến trúc của Duet với Provider, Riverpod,
+BLoC/Cubit và GetX. Đây không phải bảng xếp hạng tốc độ tuyệt đối. Kết quả thực
+tế phải được đo với cùng widget tree, workload, Flutter SDK và thiết bị.
 
-> Các nhận định dưới đây mô tả đặc tính kiến trúc, không phải kết quả benchmark
-> tuyệt đối. Hiệu năng thực tế phải được đo trên workload, device và phiên bản
-> Flutter cụ thể của ứng dụng.
+## Cơ chế của Duet
 
----
+Mỗi `Duet<D, B>` có hai `DuetValueNotifier` độc lập:
 
-## 1. So sánh Cơ chế Hoạt động bên dưới (Internal Mechanics)
+- `dataNotifier` giữ dữ liệu nghiệp vụ lâu dài;
+- `behaviorNotifier` giữ trạng thái UI tạm thời;
+- event stream broadcast dùng cho side effect một lần;
+- reference counting quản lý vòng đời instance được widget sử dụng.
 
-```text
-┌────────────────────────────────────────────────────────────────────────┐
-│                      INTERNAL ENGINE COMPARISON                        │
-├───────────────────┬────────────────────────────────────────────────────┤
-│ duet              │ ValueNotifier<T> + Reference Counting + Selector    │
-│ GetX              │ RxProxy + Direct Element.markNeedsBuild()          │
-│ Riverpod          │ Independent Reactive Dependency Graph Node         │
-│ BLoC / Cubit      │ Async StreamController + InheritedWidget           │
-└───────────────────┴────────────────────────────────────────────────────┘
-```
+Khi một channel thay đổi, `ValueNotifier` dispatch đồng bộ tới listener của
+channel đó theo O(N listeners). `DuetBuilder` và `DuetWatch` gọi `setState` khi
+channel được nghe phát notification. `DuetSelector` luôn tính lại selector trên
+notification, nhưng chỉ gọi `setState` nếu selected value thay đổi.
 
-### 🔹 `duet`:
-- **Động cơ:** Dùng `ValueNotifier<T>` chuẩn của Flutter.
-- **Lookup:** Dùng `Map<Object, Duet>` lưu trong RAM. Instance có key dùng record `(Type, key)`, nhờ đó Map kiểm tra cả hash lẫn equality thay vì dùng hash integer làm định danh.
-- **Rebuild:** `DuetBuilder` đăng ký callback `_rebuild` (chứa `setState()`) vào `ValueNotifier`. Khi dữ liệu đổi, `ValueNotifier` gọi `notifyListeners()` chạy vòng lặp đồng bộ `O(N)` thực thi `setState()`.
-- **Selective Rebuild:** `DuetSelector<VM, T>` lưu vết `_selectedValue` và so sánh khác biệt (`!=`). Exact typed scope qua `DuetScope.of<VM>` dùng index của `InheritedElement`; API cũ tra theo cặp `<D, B>` có fallback duyệt ancestor. Nếu giá trị được chọn không thay đổi, `setState()` không được gọi.
-- **Lifecycle:** Thuật toán Reference Counting đếm số `DuetBuilder` / `DuetSelector` đang xem. Khi `_refCount == 0`, ViewModel tự gọi `dispose()` và bị xóa khỏi RAM.
+Exact typed lookup qua `DuetScope.of<VM>` dùng inherited-element index. API tra
+theo cặp `<D, B>` có ancestor fallback để tương thích. Shared state có chủ đích
+được lookup trong registry theo type và optional key.
 
-### 🔹 GetX:
-- **Động cơ:** Can thiệp trực tiếp vào `Element` tree.
-- **Lookup:** Dùng bảng băm `Get.put()` toàn cục.
-- **Rebuild:** Bỏ qua `setState()`. Khi dùng `Obx`, GetX dùng một proxy `RxProxy` toàn cục để tự động "rình" biến `.obs` được truy cập, sau đó gọi `element.markNeedsBuild()` ép Flutter vẽ lại.
-- **Lifecycle:** Bắt buộc dùng `GetMaterialApp` để hook vào Router lifecycle.
+## So sánh đặc tính
 
-### 🔹 Riverpod:
-- **Động cơ:** Đồ thị phụ thuộc reactive (Reactive Dependency Graph) hoàn toàn độc lập với cây Widget.
-- **Lookup:** Đồ thị lưu trong `ProviderContainer` thuộc `UncontrolledProviderScope`.
-- **Rebuild:** Khi dùng `ref.watch(provider.select(...))`, Riverpod tạo một cạnh (edge) liên kết giữa Node dữ liệu và Widget. Khi dữ liệu đổi, Riverpod chạy thuật toán đồ thị đánh dấu đúng Widget bị ảnh hưởng.
-- **Lifecycle:** Dùng Garbage Collection trên đồ thị. Node nào không có ai `watch` sẽ tự đánh dấu là "Rác" và tự hủy (`autoDispose`).
+| Tiêu chí | Duet | Provider | Riverpod | BLoC/Cubit | GetX |
+| --- | --- | --- | --- | --- | --- |
+| Reactive core | Hai `ValueNotifier` | Thường là `ChangeNotifier`/`Listenable` | Provider dependency graph | State stream/subscription | Rx hoặc explicit update |
+| Phạm vi cập nhật | Data, UI hoặc selected value | Provider/selected value | Provider/selected dependency | State hoặc selected value | Rx dependency hoặc update ID |
+| Lookup | Typed scope hoặc registry rõ ràng | Inherited provider | Provider container | `BlocProvider` | Global dependency registry |
+| Async composition | Method Dart trực tiếp, `SimpleDuet` helpers | Do ứng dụng tổ chức | Provider async primitives | Event/state pipeline | Controller/workers |
+| Lifecycle | Scope + reference counting | Provider ownership | Container + auto-dispose policies | Provider ownership | Binding/smart-management policies |
+| Base machinery mỗi unit | 2 notifier + event stream | Phụ thuộc provider type | Provider nodes/dependencies | Bloc/Cubit + state stream | Rx/controller machinery |
+| Selective rebuild | `DuetSelector` | `Selector`/`context.select` | `.select()` | `BlocSelector`/`buildWhen` | `Obx`/IDs |
 
-### 🔹 BLoC:
-- **Động cơ:** Luồng bất đồng bộ Dart `Stream`.
-- **Lookup:** Gắn chặt vào cây Widget bằng `BlocProvider` (bản chất là `InheritedWidget`).
-- **Rebuild:** `BlocBuilder` tạo `StreamSubscription` lắng nghe Stream. Mỗi State mới phát ra từ Stream sẽ kích hoạt `setState()`.
-- **Lifecycle:** Phụ thuộc vào Cây Widget. Khi Node `BlocProvider` bị unmount, hàm `dispose()` tự đóng `Stream`.
+Các lựa chọn trên có trade-off khác nhau. Duet ưu tiên engine nhỏ, synchronous và
+dễ lần theo. Riverpod mạnh về dependency composition; BLoC mạnh về event pipeline
+và governance; Provider gần Flutter primitives; GetX ưu tiên API ngắn và hệ sinh
+thái tích hợp. Không thể suy ra app nào nhanh hơn chỉ từ bảng kiến trúc.
 
----
+## Batching và widget rebuild
 
-## 2. Phân tích Hiệu năng (Performance Benchmarks)
+`batch()` gom notification đang chờ thành một notification cho mỗi channel đã
+thay đổi. Nó giảm listener dispatch và selector evaluation. Nó không loại bỏ
+việc tạo state trung gian bên trong batch.
 
-| Chỉ số | `duet` | GetX | Riverpod | BLoC |
-| :--- | :--- | :--- | :--- | :--- |
-| **Dispatch tới listener** | Đồng bộ, O(N listeners) | Phụ thuộc Stream/subscription | Phụ thuộc provider graph | Phụ thuộc Rx subscriptions |
-| **Lookup chính** | HashMap O(1) hoặc exact typed scope | Inherited context | Provider container/graph | Global HashMap |
-| **Allocation nền** | 2 notifier và 1 broadcast event stream mỗi Duet | Stream/state machinery | Provider nodes | Rx/proxy machinery |
-| **Selective rebuild** | `DuetSelector` / `DuetWatch` | `BlocSelector` | `.select()` | `Obx` |
+Số notification không phải số widget build. Nhiều `setState()` đồng bộ trước
+frame kế tiếp có thể được Flutter coalesce thành một build. Vì vậy benchmark chỉ
+đếm `notifyListeners()` không đủ để tuyên bố giảm cùng tỷ lệ widget rebuild hoặc
+jank.
 
----
+Xem [Đo lường Hiệu năng](performance.md) để đo dispatch, selector và frame timing
+riêng biệt.
 
-## 3. Đánh giá mức độ phù hợp cho Dự án Ngân hàng & Fintech Enterprise
+## Lưu ý khi dùng trong dự án lớn
 
-Khi xây dựng ứng dụng Tài chính / Ngân hàng quy mô lớn (Team 50-100 Lập trình viên), tiêu chí đánh giá không chỉ nằm ở Tốc độ CPU mà còn ở **Quản trị Rủi ro (Governance) và Nhật ký Kiểm toán (Audit Trail)**.
-
-### 🟢 Nơi `duet` thể hiện xuất sắc:
-1. **Bề mặt dependency nhỏ:** Package chỉ phụ thuộc Flutter SDK, giảm một phần rủi ro chuỗi cung ứng nhưng không loại bỏ rủi ro của toàn bộ ứng dụng.
-2. **UX Chuyển tiền không bị giật:** Nhờ tách biệt Data & Behavior Notifier, quá trình xử lý OTP / Loading không làm mất dữ liệu tài khoản trên màn hình.
-3. **An toàn bộ nhớ RAM:** `DuetBuilder` yêu cầu bắt buộc truyền `viewModel`, bảo đảm 100% không rò rỉ RAM khi thoát màn hình.
-4. **Sealed Class an toàn:** Ép buộc xử lý đủ 100% các trạng thái giao dịch (Thành công, Lỗi mạng, Timeout).
-
-### 🔴 Những điểm cần lưu ý khi áp dụng cho Ngân hàng Enterprise:
-1. **Thiếu Global Audit Observer:** BLoC có `BlocObserver` tự động ghi log 100% lịch sử giao dịch/event của user khi gặp sự cố tra soát. Với `duet`, bạn cần tự viết thêm một lớp Middleware Logger nếu cần audit log toàn cục.
-2. **Không ép buộc Event Class:** BLoC ép dev phải tạo class `TransferEvent`, ngăn ngừa việc dev gọi lén hàm nghiệp vụ. Với `duet`, cần quy định rõ ràng coding convention trong team.
-3. **Ownership rõ ràng:** Dùng `DuetScope`/`context.vm` cho state cục bộ và `Duets.shared` cho state dùng chung có chủ đích; không dùng các helper service locator legacy.
+- Duet chỉ phụ thuộc Flutter SDK, giúp bề mặt dependency nhỏ nhưng không loại bỏ
+  rủi ro supply chain của toàn ứng dụng.
+- `DuetObserver` và `DuetLogger` quan sát state/effect trong debug mode. Audit log
+  production vẫn cần transport, redaction, persistence và security do ứng dụng
+  thiết kế.
+- Duet không bắt buộc event class cho mọi intent; team lớn nên thống nhất public
+  intent methods và coding conventions.
+- Dùng `DuetView`/`DuetScope` cho state cục bộ và `Duets.shared` cho state dùng
+  chung có chủ đích. Không dùng API service-locator legacy cho code mới.
+- Tách state có tần suất cập nhật hoặc vòng đời khác nhau thành các Duet nhỏ hơn
+  thay vì một application-wide Duet khổng lồ.

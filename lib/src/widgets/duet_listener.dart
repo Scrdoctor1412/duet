@@ -43,7 +43,7 @@ class _DuetListenerState<VM extends Duet, E>
     super.didChangeDependencies();
     final newVM = widget.viewModel ?? DuetScope.of<VM>(context);
 
-    if (_effectiveVM != newVM) {
+    if (!identical(_effectiveVM, newVM)) {
       _detach();
       _attach(newVM);
     }
@@ -52,7 +52,7 @@ class _DuetListenerState<VM extends Duet, E>
   @override
   void didUpdateWidget(covariant DuetListener<VM, E> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.viewModel != widget.viewModel) {
+    if (!identical(oldWidget.viewModel, widget.viewModel)) {
       _detach();
       _attach(widget.viewModel ?? DuetScope.of<VM>(context));
     }
@@ -140,7 +140,7 @@ class _DuetBehaviorListenerState<D, B>
     super.didChangeDependencies();
     final newVM = DuetScope.find<D, B>(context, explicitVM: widget.viewModel);
 
-    if (_effectiveVM != newVM) {
+    if (!identical(_effectiveVM, newVM)) {
       _detach();
       _attach(newVM);
     }
@@ -149,7 +149,7 @@ class _DuetBehaviorListenerState<D, B>
   @override
   void didUpdateWidget(covariant DuetBehaviorListener<D, B> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.viewModel != widget.viewModel) {
+    if (!identical(oldWidget.viewModel, widget.viewModel)) {
       _detach();
       _attach(DuetScope.find<D, B>(context, explicitVM: widget.viewModel));
     }
