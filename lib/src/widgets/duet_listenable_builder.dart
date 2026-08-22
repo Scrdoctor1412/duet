@@ -19,25 +19,49 @@ class DuetListenableBuilder extends StatefulWidget {
 }
 
 class _DuetListenableBuilderState extends State<DuetListenableBuilder> {
+  List<Listenable> _attachedListenables = const [];
+
   @override
   void initState() {
     super.initState();
-    for (final listenable in widget.listenTo) {
-      listenable.addListener(_rebuild);
-    }
+    _syncListenables();
   }
 
   @override
   void didUpdateWidget(covariant DuetListenableBuilder oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.listenTo != widget.listenTo) {
-      for (final listenable in oldWidget.listenTo) {
+    _syncListenables();
+  }
+
+  void _syncListenables() {
+    final nextListenables = _uniqueByIdentity(widget.listenTo);
+
+    for (final listenable in _attachedListenables) {
+      if (!_containsIdentical(nextListenables, listenable)) {
         listenable.removeListener(_rebuild);
       }
-      for (final listenable in widget.listenTo) {
+    }
+    for (final listenable in nextListenables) {
+      if (!_containsIdentical(_attachedListenables, listenable)) {
         listenable.addListener(_rebuild);
       }
     }
+    _attachedListenables = nextListenables;
+  }
+
+  List<Listenable> _uniqueByIdentity(Iterable<Listenable> values) {
+    final result = <Listenable>[];
+    for (final value in values) {
+      if (!_containsIdentical(result, value)) result.add(value);
+    }
+    return List.unmodifiable(result);
+  }
+
+  bool _containsIdentical(
+    Iterable<Listenable> values,
+    Listenable candidate,
+  ) {
+    return values.any((value) => identical(value, candidate));
   }
 
   void _rebuild() {
@@ -48,9 +72,10 @@ class _DuetListenableBuilderState extends State<DuetListenableBuilder> {
 
   @override
   void dispose() {
-    for (final listenable in widget.listenTo) {
+    for (final listenable in _attachedListenables) {
       listenable.removeListener(_rebuild);
     }
+    _attachedListenables = const [];
     super.dispose();
   }
 

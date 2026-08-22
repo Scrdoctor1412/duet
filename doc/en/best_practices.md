@@ -39,6 +39,11 @@ emit(
 
 Always use immutable data structures for `Data` and `UiBehavior` classes. Use `copyWith` methods or packages like `freezed` to enforce data safety:
 
+`ValueNotifier` compares the old and new values with `==`. A new instance that
+is value-equal to the previous state does not notify listeners. Mutating a list
+inside the existing state and assigning that same state again can therefore
+leave the UI unchanged.
+
 ```dart
 @immutable
 class UserData {
@@ -52,7 +57,21 @@ class UserData {
 
 ---
 
-## 4. Unit Testing Guidelines
+## 4. Selectors, batching, and rebuilds
+
+- Every notification evaluates every `DuetSelector` subscribed to that channel.
+- Only selectors whose selected result changes call `setState`.
+- Keep selectors O(1); do not sort, filter, parse, or perform I/O in them.
+- `batch()` reduces notification dispatch and selector evaluation, but it does
+  not remove the cost of constructing intermediate state objects.
+- Notification count is not widget-build count. Flutter may coalesce repeated
+  synchronous `setState` calls before the next frame.
+
+Use the [performance guide](performance.md) to measure jank in profile mode.
+
+---
+
+## 5. Unit Testing Guidelines
 
 Testing a `Duet` class requires zero Flutter widget dependencies. Test your business logic directly in pure Dart:
 

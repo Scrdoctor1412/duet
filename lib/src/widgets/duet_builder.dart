@@ -79,7 +79,7 @@ class _DuetBuilderState<D, B> extends State<DuetBuilder<D, B>> {
     super.didChangeDependencies();
     final newVM = DuetScope.find<D, B>(context, explicitVM: widget.viewModel);
 
-    if (_effectiveVM != newVM) {
+    if (!identical(_effectiveVM, newVM)) {
       _detach();
       _attach(newVM);
     }
@@ -88,7 +88,7 @@ class _DuetBuilderState<D, B> extends State<DuetBuilder<D, B>> {
   @override
   void didUpdateWidget(covariant DuetBuilder<D, B> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.viewModel != widget.viewModel) {
+    if (!identical(oldWidget.viewModel, widget.viewModel)) {
       _detach();
       _attach(DuetScope.find<D, B>(context, explicitVM: widget.viewModel));
     } else if (oldWidget.target != widget.target) {

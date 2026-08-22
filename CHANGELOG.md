@@ -1,5 +1,11 @@
 # Next
 
+- Fixed `DuetListenableBuilder` to diff subscriptions by identity, avoid
+  rewiring unchanged listenables, and subscribe only once to duplicate entries.
+- Standardized ViewModel lifecycle comparisons on object identity so distinct
+  instances that override `==` still detach, retain, and subscribe correctly.
+- Added profile-mode performance measurement guides and clarified selector,
+  batching, equality, notification, and widget-build semantics.
 - Deprecated the legacy `getDuet`, `getVM`, `context.duet`, and
   `context.getVM` service-locator APIs. Use `Duets.shared` for intentionally
   shared state and `DuetView`/`DuetScope` for local state. The deprecated APIs

@@ -23,6 +23,17 @@ class SampleViewModel extends Duet<SampleData, String> {
   }
 }
 
+class EqualViewModel extends Duet<int, String> {
+  EqualViewModel(int value)
+      : super(initialData: value, initialBehavior: 'Idle');
+
+  @override
+  bool operator ==(Object other) => other is EqualViewModel;
+
+  @override
+  int get hashCode => 1;
+}
+
 void main() {
   testWidgets('DuetBuilder automatically binds viewModel and listens to data',
       (WidgetTester tester) async {
@@ -75,5 +86,29 @@ void main() {
     viewModel.setBehavior('Loading');
     await tester.pump();
     expect(find.text('Status: Loading'), findsOneWidget);
+  });
+
+  testWidgets('DuetBuilder swaps equal but non-identical ViewModels',
+      (WidgetTester tester) async {
+    final first = EqualViewModel(1);
+    final second = EqualViewModel(2);
+
+    Widget host(EqualViewModel viewModel) {
+      return MaterialApp(
+        home: DuetBuilder<int, String>(
+          viewModel: viewModel,
+          builder: (_, data) => Text('$data'),
+        ),
+      );
+    }
+
+    await tester.pumpWidget(host(first));
+    expect(find.text('1'), findsOneWidget);
+    expect(first.refCount, 1);
+
+    await tester.pumpWidget(host(second));
+    expect(find.text('2'), findsOneWidget);
+    expect(first.isDisposed, isTrue);
+    expect(second.refCount, 1);
   });
 }

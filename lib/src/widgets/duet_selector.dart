@@ -58,7 +58,7 @@ class _DuetSelectorState<VM extends Duet, T>
     super.didChangeDependencies();
     final newVM = widget.viewModel ?? DuetScope.of<VM>(context);
 
-    if (_effectiveVM != newVM) {
+    if (!identical(_effectiveVM, newVM)) {
       _detach();
       _attach(newVM);
     }
@@ -67,7 +67,7 @@ class _DuetSelectorState<VM extends Duet, T>
   @override
   void didUpdateWidget(covariant DuetSelector<VM, T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.viewModel != widget.viewModel) {
+    if (!identical(oldWidget.viewModel, widget.viewModel)) {
       _detach();
       _attach(widget.viewModel ?? DuetScope.of<VM>(context));
       return;
